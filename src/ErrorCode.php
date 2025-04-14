@@ -4,53 +4,60 @@ declare(strict_types=1);
 
 namespace Donate;
 
-class ErrorCode {
+/**
+ * Error codes used throughout the plugin
+ */
+final class ErrorCode {
+	/** No error */
+	public const NONE = 0;
 
-	public const AZ001 = " [Error Code: AZ001]";
+	/** Generic error */
+	public const GENERIC_ERROR = 1;
 
-	public const AZ002 = " [Error Code: AZ002]";
+	/** Network/connection error */
+	public const NETWORK_ERROR = 2;
 
-	public const AZ003 = " [Error Code: AZ003]";
+	/** API error */
+	public const API_ERROR = 3;
 
-	public const AZ004 = " [Error Code: AZ004]";
+	/** Invalid card error */
+	public const INVALID_CARD = 4;
 
-	public const AZ005 = " [Error Code: AZ005]";
+	/** Configuration error */
+	public const CONFIG_ERROR = 5;
 
-	public const AZ006 = " [Error Code: AZ006]";
+	/** Permission error */
+	public const PERMISSION_ERROR = 6;
 
-	public const AZ007 = " [Error Code: AZ007]";
+	/** Database error */
+	public const DATABASE_ERROR = 7;
 
-	public const AZ008 = " [Error Code: AZ008]";
+	/** Invalid input error */
+	public const INVALID_INPUT = 8;
 
-	public const AZ009 = " [Error Code: AZ009]";
+	/** Server error */
+	public const SERVER_ERROR = 9;
 
-	public const AZ010 = " [Error Code: AZ010]";
+	/** Unknown error */
+	public const UNKNOWN_ERROR = 99;
 
-	public const AZ011 = " [Error Code: AZ011]";
-
-	public const AZ012 = " [Error Code: AZ012]";
-
-	public const AZ013 = " [Error Code: AZ013]";
-
-	public const AZ014 = " [Error Code: AZ014]";
-
-	public const AZ015 = " [Error Code: AZ015]";
-
-	public const AZ016 = " [Error Code: AZ016]";
-
-	public const AZ017 = " [Error Code: AZ017]";
-
-	public const AZ018 = " [Error Code: AZ018]";
-
-	public const AZ019 = " [Error Code: AZ019]";
-
-	public const AZ020 = " [Error Code: AZ020]";
-
-	public const AZ021 = " [Error Code: AZ021]";
-
-	public const AZ022 = " [Error Code: AZ022]";
-
-	public const AZ023 = " [Error Code: AZ023]";
-
-	public const AZ024 = " [Error Code: AZ024]";
+	/**
+	 * Get a human-readable error message for an error code
+	 */
+	public static function getMessage(int $code): string {
+		return match ($code) {
+			self::NONE => "Không có lỗi",
+			self::GENERIC_ERROR => "Lỗi không xác định",
+			self::NETWORK_ERROR => "Lỗi kết nối mạng",
+			self::API_ERROR => "Lỗi API",
+			self::INVALID_CARD => "Thẻ không hợp lệ",
+			self::CONFIG_ERROR => "Lỗi cấu hình",
+			self::PERMISSION_ERROR => "Không có quyền",
+			self::DATABASE_ERROR => "Lỗi cơ sở dữ liệu",
+			self::INVALID_INPUT => "Dữ liệu nhập vào không hợp lệ",
+			self::SERVER_ERROR => "Lỗi máy chủ",
+			self::UNKNOWN_ERROR => "Lỗi không xác định",
+			default => "Mã lỗi không xác định: $code"
+		};
+	}
 }

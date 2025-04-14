@@ -4,20 +4,24 @@ declare(strict_types=1);
 
 namespace Donate;
 
+/**
+ * Constants used throughout the plugin
+ */
 class Constant {
-
+	/** Plugin prefix for messages */
 	public const PREFIX = "[Nạp Thẻ] ";
 
 	public const PARTNER_ID = "";
 
 	public const PARTNER_KEY = "";
 
-	public const URL = "https://trumthe.vn//chargingws/v2";
+	/** API endpoint for trumthe.vn */
+	public const URL = "https://trumthe.vn/chargingws/v2";
 
 	/** Số tiền người chơi nhận được trong máy chủ khi nạp thẻ thành công sẽ nhân với giá trị này */
 	public const BONUS = 1;
 
-	/** Không thay đổi giá trị của hằng này */
+	/** Telco codes for API */
 	public const TELCO = [
 		"VIETTEL",
 		"VINA",
@@ -29,6 +33,7 @@ class Constant {
 		"GATE"
 	];
 
+	/** Display names for telcos */
 	public const TELCO_DISPLAY = [
 		"Viettel",
 		"VinaPhone",
@@ -41,7 +46,7 @@ class Constant {
 	];
 
 	/** Không thay đổi giá trị của hằng này */
-	public const AMOUNT =  [
+	public const AMOUNT = [
 		10000,
 		20000,
 		50000,
@@ -50,7 +55,8 @@ class Constant {
 		500000
 	];
 
-	public const AMOUNT_DISPLAY =  [
+	/** Display strings for card amounts */
+	public const AMOUNT_DISPLAY = [
 		"10.000₫",
 		"20.000₫",
 		"50.000₫",

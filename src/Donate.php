@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Donate;
 
+use Donate\manager\FormManager;
+use Donate\manager\PaymentManager;
 use Donate\SingletonTrait;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
@@ -14,100 +16,178 @@ use pocketmine\utils\MainLogger;
 use pocketmine\utils\Terminal;
 use pocketmine\utils\Timezone;
 use Symfony\Component\Filesystem\Path;
+use pocketmine\utils\SingletonTrait as PMSingletonTrait;
 
 class Donate extends PluginBase {
 	use SingletonTrait;
 
 	public MainLogger $logger;
 
-	public Config $donateData;
+	private Config $donateData;
+	private FormManager $formManager;
+	private PaymentManager $paymentManager;
+
+	protected function onLoad(): void {
+		self::setInstance($this);
+
+		// Prepare plugin directory
+		@mkdir($this->getDataFolder());
+	}
 
 	protected function onEnable(): void {
-		self::setInstance(instance: $this);
+		// Initialize configuration
+		$this->saveDefaultConfig();
+		$this->donateData = new Config($this->getDataFolder() . "donateData.yml", Config::YAML);
+
+		// Check for valid API credentials
+		if ($this->getConfig()->get("partner_id", "") === "" || $this->getConfig()->get("partner_key", "") === "") {
+			$this->getLogger()->error("Vui lòng cấu hình partner_id và partner_key trong config.yml!");
+			$this->getServer()->getPluginManager()->disablePlugin($this);
+			return;
+		}
+
+		// Initialize managers
+		$this->formManager = new FormManager($this);
+		$this->paymentManager = new PaymentManager($this);
+
+		// Start the payment checking task
+		$this->paymentManager->startPaymentCheckTask();
+
 		$this->logger = new MainLogger(
 			logFile: Path::join($this->getDataFolder(), "log.log"),
 			useFormattingCodes: Terminal::hasFormattingCodes(),
 			mainThreadName: "Server",
 			timezone: new \DateTimeZone(Timezone::get())
 		);
-		$this->donateData = new Config($this->getDataFolder() . "donateData.yml", Config::YAML);
-		if (Constant::PARTNER_ID === "" || Constant::PARTNER_KEY === "") {
-			$this->getLogger()->error("Vui lòng không để trống giá trị của Constant::ID và Constant::KEY!");
-			$this->getServer()->getPluginManager()->disablePlugin($this);
+	}
+
+	protected function onDisable(): void {
+		// Save any pending data
+		if (isset($this->donateData)) {
+			$this->donateData->save();
 		}
 	}
 
 	public function onCommand(CommandSender $sender, Command $command, string $label, array $args): bool {
-		if ($command->getName() == "donate") {
-			if (!$sender instanceof Player) {
-				$sender->sendMessage(Constant::PREFIX . "Vui lòng sử dụng lệnh này trong trò chơi!");
-				return true;
-			}
-			$sender->sendForm(DonateForm::get());
-			return true;
-		}
-		if ($command->getName() == "topdonate") {
-			$donateData = $this->donateData->getAll();
-			$maxPage = ceil(count($donateData) / 10);
-			if ($maxPage == 0) {
-				$sender->sendMessage("Hiện chưa có một ai nạp thẻ ủng hộ máy chủ...");
-				return true;
-			}
-			$max = 0;
-			foreach ($donateData as $c) {
-				$max += count($donateData);
-			}
-			$page = ceil($max / 10);
-			$page = array_shift($args);
-			$page = max(1, $page);
-			$page = min($max, $page);
-			$page = (int)$page;
-			$sender->sendMessage("--- Bảng xếp hạng nạp thẻ trang $page/$maxPage (/topdonate <trang>) ---");
-			arsort($donateData);
-			$i = 0;
-			$senderTop = 0;
-			$serverTotalDonated = 0;
-			foreach ($donateData as $playerName => $totalDonated) {
-				if (($page - 1) * 10 <= $i && $i <= ($page - 1) * 10 + 9) {
-					$top = $i + 1;
-					if (is_string($playerName)) {
-						$playerTotalDonated = $this->donateData->get(k: $playerName);
-						if (is_int($playerTotalDonated)) {
-							$playerTotalDonated = number_format(num: $playerTotalDonated, decimals: 0, decimal_separator: ".", thousands_separator: ".");
-							$sender->sendMessage("$top. $playerName: {$playerTotalDonated}₫");
-							$serverTotalDonated = $serverTotalDonated + $totalDonated;
-						}
-					}
+		$commandName = $command->getName();
+
+		switch ($commandName) {
+			case "donate":
+				if (!$sender instanceof Player) {
+					$sender->sendMessage(Constant::PREFIX . "Vui lòng sử dụng lệnh này trong trò chơi!");
+					return true;
 				}
-				if ($playerName == $sender->getName()) {
-					$senderTop = $i + 1;
+
+				$this->formManager->sendDonateForm($sender);
+				return true;
+
+			case "topdonate":
+				$page = 1;
+				if (isset($args[0]) && is_numeric($args[0])) {
+					$page = max(1, (int) $args[0]);
 				}
-				$i++;
-			}
-			if ($sender instanceof Player) {
-				$sender->sendMessage("Xếp hạng của bạn là $senderTop");
-			}
-			$serverTotalDonated = number_format(num: intval($serverTotalDonated), decimals: 0, decimal_separator: ".", thousands_separator: ".");
-			$sender->sendMessage("Tổng số tiền nạp thẻ từ người chơi của máy chủ là: {$serverTotalDonated}₫");
-			return true;
+
+				$this->showTopDonators($sender, $page);
+				return true;
+
+			default:
+				return false;
 		}
-		return false;
 	}
 
-	public function successfulDonation(string $playerName, string $amount): void {
-		$amountFormated = $playerTotalDonated = number_format(num: intval($amount), decimals: 0, decimal_separator: ".", thousands_separator: ".");
+	private function showTopDonators(CommandSender $sender, int $page): void {
+		$donateData = $this->donateData->getAll();
+		if (empty($donateData)) {
+			$sender->sendMessage(Constant::PREFIX . "Hiện chưa có một ai nạp thẻ ủng hộ máy chủ...");
+			return;
+		}
+
+		// Sort by donation amount (descending)
+		arsort($donateData);
+
+		$totalPlayers = count($donateData);
+		$itemsPerPage = 10;
+		$maxPage = ceil($totalPlayers / $itemsPerPage);
+
+		// Validate page number
+		$page = min($maxPage, $page);
+
+		$sender->sendMessage(Constant::PREFIX . "--- Bảng xếp hạng nạp thẻ trang $page/$maxPage (/topdonate <trang>) ---");
+
+		$startIndex = ($page - 1) * $itemsPerPage;
+		$i = 0;
+		$senderRank = 0;
+		$serverTotalDonated = 0;
+
+		foreach ($donateData as $playerName => $amount) {
+			// Calculate total donation amount for server
+			$amountValue = is_numeric($amount) ? (int)$amount : 0;
+			$serverTotalDonated += $amountValue;
+
+			// Find sender's rank
+			if ($sender instanceof Player && $playerName === $sender->getName()) {
+				$senderRank = $i + 1;
+			}
+
+			// Display entries for current page
+			if ($i >= $startIndex && $i < $startIndex + $itemsPerPage) {
+				$rank = $i + 1;
+				$formattedAmount = number_format($amountValue, 0, ".", ".");
+				$sender->sendMessage("$rank. $playerName: {$formattedAmount}₫");
+			}
+
+			$i++;
+		}
+
+		// Show sender's rank (if player)
+		if ($sender instanceof Player && $senderRank > 0) {
+			$sender->sendMessage(Constant::PREFIX . "Xếp hạng của bạn là $senderRank");
+		}
+
+		// Show server total donations
+		$formattedTotal = number_format($serverTotalDonated, 0, ".", ".");
+		$sender->sendMessage(Constant::PREFIX . "Tổng số tiền nạp thẻ từ người chơi của máy chủ là: {$formattedTotal}₫");
+	}
+
+	public function successfulDonation(string $playerName, int $amount): void {
+		$formattedAmount = number_format($amount, 0, ".", ".");
+
+		// Broadcast donation message
+		$this->getServer()->broadcastMessage(Constant::PREFIX . "Người chơi $playerName đã nạp {$formattedAmount}₫ để ủng hộ máy chủ!");
+
+		// Update player statistics safely
+		$currentAmount = $this->donateData->getNested($playerName, 0);
+		$safeAmount = is_numeric($currentAmount) ? (int)$currentAmount : 0;
+		$this->donateData->setNested($playerName, $safeAmount + $amount);
+		$this->donateData->save();
+
+		// Get bonus multiplier from config
+		$multiplierRaw = $this->getConfig()->get("bonus_multiplier", 1.0);
+		$multiplier = is_numeric($multiplierRaw) ? (float)$multiplierRaw : 1.0;
+
+		// Calculate bonus amount
+		$bonusAmount = (int)($amount * $multiplier);
+
+		// Add any additional reward code here
+		// Example: EconomyAPI::getInstance()->addMoney($playerName, $bonusAmount);
+
+		// Notify player if online
 		$player = $this->getServer()->getPlayerExact($playerName);
-		$this->getServer()->broadcastMessage(Constant::PREFIX . "Người chơi $playerName đã nạp {$amountFormated}₫ để ủng hộ máy chủ!");
-		// Mã đưa tiền cho người chơi sẽ được viết tại đây.
-		// Ví dụ: EconomyAPI::addMoney($playerName, $amount * Constant::BONUS);
-		$playerTotalDonated = $this->donateData->get(k: $playerName, default: 0);
-		if (is_int($playerTotalDonated)) {
-			$this->donateData->set(k: $playerName, v: $playerTotalDonated + (int) $amount);
-			$this->donateData->save();
-		}
 		if ($player !== null) {
-			$player->sendMessage("Chân thành cảm ơn bạn đã ủng hộ máy chủ $amountFormated!");
-			$player->sendMessage("Bạn đã nhận được $amount xu");
+			$player->sendMessage(Constant::PREFIX . "Chân thành cảm ơn bạn đã ủng hộ máy chủ {$formattedAmount}₫!");
+			$player->sendMessage(Constant::PREFIX . "Bạn đã nhận được $bonusAmount xu");
 		}
+	}
+
+	public function getDonateData(): Config {
+		return $this->donateData;
+	}
+
+	public function getFormManager(): FormManager {
+		return $this->formManager;
+	}
+
+	public function getPaymentManager(): PaymentManager {
+		return $this->paymentManager;
 	}
 }

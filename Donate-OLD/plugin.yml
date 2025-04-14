@@ -1,0 +1,20 @@
+---
+name: Donate
+version: 1.0.0
+main: Donate\Donate
+src-namespace-prefix: Donate
+api: 4.6.1
+
+commands:
+  donate:
+    description: "Donate"
+    permission: donate.cmd
+  topdonate:
+    description: "Xếp Hạng Donate"
+    permission: topdonate.cmd
+permissions:
+  donate.cmd:
+    default: true
+  topdonate.cmd:
+    default: true
+...

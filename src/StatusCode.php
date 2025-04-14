@@ -1,29 +1,43 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Donate;
 
-class StatusCode {
+/**
+ * Status codes returned by the API
+ */
+final class StatusCode {
+	/** Operation completed successfully */
+	public const SUCCESS = 1;
 
-	/** OK */
-	public const OK = 200;
+	/** Card is being processed */
+	public const PENDING = 2;
 
-	/** Thẻ thành công đúng mệnh giá */
-	public const SUCCESS_MATCH_AMOUNT = 1;
+	/** System is under maintenance */
+	public const SYSTEM_MAINTENANCE = 3;
 
-	/** Thẻ thành công sai mệnh giá */
-	public const SUCCESS_NOT_MATCH_AMOUNT = 2;
+	/** Incorrect card information */
+	public const INCORRECT_CARD = 4;
 
-	/** Thẻ lỗi */
-	public const ERROR_CARD = 3;
+	/** Card has already been used */
+	public const CARD_USED = 5;
 
-	/** Hệ thống bảo trì */
-	public const SYSTEM_MAINTENANCE = 4;
+	/** Card is not supported */
+	public const CARD_NOT_SUPPORTED = 6;
 
-	/** Thẻ chờ xử lý */
-	public const WAITING_FOR_PROCESSING = 99;
+	/** Partner information is incorrect */
+	public const INCORRECT_PARTNER = 7;
 
-	/** Gửi thẻ thất bại - Có lý do đi kèm ở phần thông báo trả về */
-	public const FAILED_WITH_REASON = 100;
+	/** Connection error */
+	public const CONNECTION_ERROR = 8;
+
+	/** Other processing error */
+	public const PROCESSING_ERROR = 9;
+
+	/** Request failed with specific reason */
+	public const FAILED_WITH_REASON = 99;
+
+	/** Generic error */
+	public const ERROR = -1;
 }

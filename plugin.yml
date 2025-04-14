@@ -1,23 +1,29 @@
 ---
 name: Donate
-version: 0.0.1
+version: 1.0.0
 main: Donate\Donate
 src-namespace-prefix: Donate
 api: 5.0.0
+extensions: [json]
 authors: [hachkingtohach1, TungstenVN, NhanAZ]
+description: Plugin nạp thẻ cho máy chủ PMMP
+website: https://github.com/NhanAZ/Donate
 
 commands:
   donate:
-    description: "Nạp thẻ"
+    description: "Nạp thẻ ủng hộ máy chủ"
     permission: donate.command
     aliases: [napthe]
   topdonate:
     description: "Hiển thị bảng xếp hạng nạp thẻ"
     permission: topdonate.command
+    aliases: [topnap, topnapthe]
 
 permissions:
   donate.command:
+    description: "Cho phép sử dụng lệnh /donate"
     default: true
   topdonate.command:
+    description: "Cho phép sử dụng lệnh /topdonate"
     default: true
 ...
