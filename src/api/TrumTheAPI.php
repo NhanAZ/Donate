@@ -60,15 +60,47 @@ final class TrumTheAPI {
 			"sign" => $sign,
 			"command" => "charging"
 		];
+		
+		// Debug logging - API request
+		if (isset($plugin->debugLogger)) {
+			// Clone the data to avoid modifying the original
+			$debugData = $data;
+			// Mask sensitive data
+			$debugData["code"] = substr($code, 0, 2) . "****" . substr($code, -2);
+			$debugData["serial"] = substr($serial, 0, 4) . "****" . substr($serial, -4);
+			$debugData["sign"] = substr($sign, 0, 8) . "...";
+			
+			$plugin->debugLogger->logApi("CHARGE_REQUEST", $debugData);
+		}
 
 		$result = self::postRequest($data);
 		if ($result === null) {
+			// Debug logging - API request failed
+			if (isset($plugin->debugLogger)) {
+				$plugin->debugLogger->logApi("CHARGE_FAILED", [], ["error" => "Connection failed"]);
+			}
 			return null;
 		}
 
 		$responseData = json_decode($result->getBody(), true);
 		if (!is_array($responseData)) {
+			// Debug logging - API response parse error
+			if (isset($plugin->debugLogger)) {
+				$plugin->debugLogger->logApi("CHARGE_PARSE_ERROR", [], ["raw" => substr($result->getBody(), 0, 100)]);
+			}
 			return null;
+		}
+		
+		// Debug logging - API response
+		if (isset($plugin->debugLogger)) {
+			$plugin->debugLogger->logApi("CHARGE_RESPONSE", [], $responseData);
+			// Log chi tiết thông báo lỗi để debug
+			if (isset($responseData['message'])) {
+				$plugin->debugLogger->log(
+					"API response message (raw): '{$responseData['message']}'",
+					"api"
+				);
+			}
 		}
 
 		return ChargeResponse::fromArray($responseData);
@@ -97,15 +129,36 @@ final class TrumTheAPI {
 			"sign" => md5($partnerKey . $requestId),
 			"command" => "check"
 		];
+		
+		// Debug logging - API status check request
+		if (isset($plugin->debugLogger)) {
+			$debugData = $data;
+			$debugData["sign"] = substr($data["sign"], 0, 8) . "...";
+			
+			$plugin->debugLogger->logApi("STATUS_REQUEST", $debugData);
+		}
 
 		$result = self::postRequest($data);
 		if ($result === null) {
+			// Debug logging - API request failed
+			if (isset($plugin->debugLogger)) {
+				$plugin->debugLogger->logApi("STATUS_FAILED", [], ["error" => "Connection failed"]);
+			}
 			return null;
 		}
 
 		$responseData = json_decode($result->getBody(), true);
 		if (!is_array($responseData)) {
+			// Debug logging - API response parse error
+			if (isset($plugin->debugLogger)) {
+				$plugin->debugLogger->logApi("STATUS_PARSE_ERROR", [], ["raw" => substr($result->getBody(), 0, 100)]);
+			}
 			return null;
+		}
+		
+		// Debug logging - API status response
+		if (isset($plugin->debugLogger)) {
+			$plugin->debugLogger->logApi("STATUS_RESPONSE", [], $responseData);
 		}
 
 		return ChargeStatusResponse::fromArray($responseData);

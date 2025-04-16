@@ -74,7 +74,7 @@ class FormManager {
 				}
 
 				if (!is_array($data)) {
-					$player->sendMessage(Constant::PREFIX . "Có lỗi xảy ra khi xử lý biểu mẫu!");
+					$player->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Có lỗi xảy ra khi xử lý biểu mẫu!"));
 					return;
 				}
 
@@ -104,7 +104,14 @@ class FormManager {
 
 				// Validate inputs are not empty
 				if (empty($serial) || empty($code)) {
-					$player->sendMessage(Constant::PREFIX . "Vui lòng không để trống số sê-ri hoặc mã thẻ!");
+					// Sử dụng trực tiếp formatErrorMessage mà không qua bước dịch lại nội dung
+					$player->sendMessage(Constant::PREFIX . "§c" . "Vui lòng không để trống số sê-ri hoặc mã thẻ!");
+					
+					// Ghi log debug
+					$this->plugin->debugLogger->log(
+						"Player {$player->getName()} submitted form with empty serial or code",
+						"payment"
+					);
 					return;
 				}
 
@@ -114,6 +121,20 @@ class FormManager {
 
 				// Generate unique request ID
 				$requestId = Uuid::uuid4()->toString();
+				
+				// Debug logging - form submission
+				$this->plugin->debugLogger->log(
+					"Player {$player->getName()} submitted donation form - Telco: $telco, Amount: $amount", 
+					"payment"
+				);
+				
+				// Mask sensitive data for debug logging
+				$maskedSerial = substr($serial, 0, 4) . "****" . substr($serial, -4);
+				$maskedCode = substr($code, 0, 2) . "****" . substr($code, -2);
+				$this->plugin->debugLogger->log(
+					"Card details - Serial: $maskedSerial, Code: $maskedCode, RequestID: $requestId", 
+					"payment"
+				);
 
 				// Process payment
 				$response = $this->plugin->getPaymentManager()->processCardPayment(
@@ -127,9 +148,42 @@ class FormManager {
 
 				// Show response to player
 				if ($response->isSuccessful() || $response->isPending()) {
-					$player->sendMessage(Constant::PREFIX . "Thẻ của bạn đang được xử lý, vui lòng đợi...");
+					$player->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Thẻ của bạn đang được xử lý, vui lòng đợi..."));
+					
+					// Debug logging - card processing started
+					$this->plugin->debugLogger->log(
+						"Card processing started for {$player->getName()} - RequestID: $requestId",
+						"payment"
+					);
+					
+					// Send debug message to player if they have admin permission
+					if ($player->hasPermission("donate.admin")) {
+						$this->plugin->debugLogger->sendToPlayer(
+							$player,
+							"Thẻ đang được xử lý với ID: $requestId",
+							"payment"
+						);
+					}
 				} else {
-					$player->sendMessage(Constant::PREFIX . "Lỗi: " . $response->getMessage());
+					// Debug message trước khi xử lý
+					$this->plugin->debugLogger->log(
+						"Got error message from API: '{$response->getMessage()}'", 
+						"payment"
+					);
+					
+					// Xử lý đặc biệt cho card_existed
+					$message = $response->getMessage();
+					if (strpos($message, "card_existed") !== false) {
+						$player->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Thẻ này đã được sử dụng trước đó"));
+					} else {
+						$player->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage($message));
+					}
+					
+					// Debug logging - card processing failed immediately
+					$this->plugin->debugLogger->log(
+						"Card processing failed immediately for {$player->getName()} - Reason: {$response->getMessage()}",
+						"payment"
+					);
 				}
 			}
 		};

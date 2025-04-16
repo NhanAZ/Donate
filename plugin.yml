@@ -11,19 +11,29 @@ website: https://github.com/NhanAZ/Donate
 
 commands:
   donate:
-    description: "Nạp thẻ ủng hộ máy chủ"
-    permission: donate.command
-    aliases: [napthe]
+    description: "Mở giao diện nạp thẻ"
+    permission: donate.command.donate
+    usage: "/donate"
   topdonate:
-    description: "Hiển thị bảng xếp hạng nạp thẻ"
-    permission: topdonate.command
-    aliases: [topnap, topnapthe]
+    description: "Xem bảng xếp hạng người nạp thẻ"
+    permission: donate.command.topdonate
+    usage: "/topdonate [trang]"
+  donatedebug:
+    description: "Kiểm tra thông tin debug của plugin nạp thẻ"
+    permission: donate.command.debug
+    usage: "/donatedebug [pending|status <requestId>]"
 
 permissions:
-  donate.command:
+  donate.command.donate:
+    default: true
     description: "Cho phép sử dụng lệnh /donate"
+  donate.command.topdonate:
     default: true
-  topdonate.command:
     description: "Cho phép sử dụng lệnh /topdonate"
-    default: true
+  donate.command.debug:
+    default: op
+    description: "Cho phép sử dụng lệnh /donatedebug"
+  donate.admin:
+    default: op
+    description: "Cấp quyền admin cho plugin nạp thẻ"
 ...

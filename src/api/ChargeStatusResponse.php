@@ -198,19 +198,35 @@ class ChargeStatusResponse implements JsonSerializable {
 	 * Returns user-friendly message for the response
 	 */
 	public function getFriendlyMessage(): string {
-		$prefix = Constant::PREFIX;
-
-		if (!$this->isValidRequest()) {
-			return "{$prefix}Lỗi kết nối đến hệ thống thanh toán. Vui lòng thử lại sau.";
+		// Debug log để xem thông báo gốc
+		if (class_exists("\Donate\Donate") && $this->status !== StatusCode::SUCCESS && $this->status !== StatusCode::PENDING) {
+			$plugin = \Donate\Donate::getInstance();
+			if (isset($plugin->debugLogger)) {
+				$plugin->debugLogger->log(
+					"ChargeStatusResponse.getFriendlyMessage raw message: '" . $this->message . "', status: " . $this->status,
+					"api"
+				);
+			}
 		}
 
-		return match ($this->status) {
-			StatusCode::SUCCESS => "{$prefix}Thẻ nạp thành công!",
-			StatusCode::PENDING => "{$prefix}Thẻ đang được xử lý. Vui lòng đợi.",
-			StatusCode::SYSTEM_MAINTENANCE => "{$prefix}Hệ thống đang bảo trì. Vui lòng thử lại sau.",
-			StatusCode::FAILED_WITH_REASON => "{$prefix}Lỗi: {$this->message}",
-			default => "{$prefix}Có lỗi xảy ra: {$this->message}"
+		if (!$this->isValidRequest()) {
+			return \Donate\utils\MessageTranslator::formatErrorMessage("connection.failed");
+		}
+
+		// Xử lý đặc biệt cho card_existed
+		if (strpos($this->message, "card_existed") !== false) {
+			return \Donate\utils\MessageTranslator::formatErrorMessage("Thẻ này đã được sử dụng trước đó");
+		}
+
+		$message = match ($this->status) {
+			StatusCode::SUCCESS => "payment.successful",
+			StatusCode::PENDING => "charging.pending",
+			StatusCode::SYSTEM_MAINTENANCE => "system.maintenance",
+			StatusCode::FAILED_WITH_REASON => $this->message,
+			default => $this->message
 		};
+		
+		return \Donate\utils\MessageTranslator::formatErrorMessage($message);
 	}
 
 	/**
