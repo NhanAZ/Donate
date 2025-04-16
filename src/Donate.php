@@ -492,7 +492,15 @@ class Donate extends PluginBase {
 			$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Tiến hành kiểm tra trạng thái..."));
 
 			try {
-				$response = \Donate\api\TrumTheAPI::checkCardStatus($requestId);
+				// Lấy thông tin thẻ để truyền vào hàm kiểm tra
+				$cardInfo = [
+					'telco' => $payment->getTelco(),
+					'code' => $payment->getCode(),
+					'serial' => $payment->getSerial(),
+					'amount' => $payment->getAmount()
+				];
+				
+				$response = \Donate\api\TrumTheAPI::checkCardStatus($requestId, $cardInfo);
 
 				if ($response === null) {
 					$sender->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Không thể kết nối đến dịch vụ thanh toán!"));

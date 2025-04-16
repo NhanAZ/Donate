@@ -71,7 +71,7 @@ final class TrumTheAPI {
 			// Mask sensitive data
 			$debugData["code"] = substr($code, 0, 2) . "****" . substr($code, -2);
 			$debugData["serial"] = substr($serial, 0, 4) . "****" . substr($serial, -4);
-			$debugData["sign"] = substr($sign, 0, 8) . "...";
+			$debugData["sign"] = substr(DataTypeUtils::toString($sign), 0, 8) . "...";
 
 			$plugin->debugLogger->logApi("CHARGE_REQUEST", $debugData);
 		}
@@ -105,6 +105,14 @@ final class TrumTheAPI {
 		$message = $responseData['message'] ?? 'no message';
 		$plugin->logger->info("[Donate/API] Received card charge response - RequestID: $requestId, Status: $status, Message: $message");
 
+		// Special log for PENDING status to clarify it's being processed, not an error
+		if (isset($responseData['message']) && $responseData['message'] === "PENDING") {
+			$plugin->logger->info("[Donate/API] Card is being processed - RequestID: $requestId, Status: PENDING. This is normal, not an error.");
+			if (isset($plugin->debugLogger)) {
+				$plugin->debugLogger->log("Card with RequestID: $requestId is PENDING processing (status 99 with PENDING message). This is expected behavior.", "api");
+			}
+		}
+
 		// Debug logging - API response
 		if (isset($plugin->debugLogger)) {
 			$plugin->debugLogger->logApi("CHARGE_RESPONSE", [], $responseData);
@@ -124,12 +132,13 @@ final class TrumTheAPI {
 	 * Check the status of a card charge request
 	 * 
 	 * @param string $requestId Request ID to check
+	 * @param array<string,mixed>|null $cardInfo Original card information (optional)
 	 * 
 	 * @return ChargeStatusResponse|null Response from the API, or null if the request failed
 	 * 
 	 * @throws InternetException If the HTTP request fails
 	 */
-	public static function checkCardStatus(string $requestId): ?ChargeStatusResponse {
+	public static function checkCardStatus(string $requestId, ?array $cardInfo = null): ?ChargeStatusResponse {
 		$plugin = Donate::getInstance();
 		$config = $plugin->getConfig();
 
@@ -137,12 +146,31 @@ final class TrumTheAPI {
 		$partnerId = DataTypeUtils::toString($config->get("partner_id", ""));
 		$partnerKey = DataTypeUtils::toString($config->get("partner_key", ""));
 
+		// Tạo dữ liệu cơ bản
 		$data = [
 			"request_id" => $requestId,
 			"partner_id" => $partnerId,
-			"sign" => md5($partnerKey . $requestId),
 			"command" => "check"
 		];
+
+		// Nếu có thông tin thẻ gốc, thêm vào yêu cầu và tính toán sign giống như lúc charging
+		if ($cardInfo !== null && isset($cardInfo['code'], $cardInfo['serial'])) {
+			$data['telco'] = $cardInfo['telco'] ?? '';
+			$data['code'] = $cardInfo['code'];
+			$data['serial'] = $cardInfo['serial'];
+			if (isset($cardInfo['amount'])) $data['amount'] = $cardInfo['amount'];
+
+			// Tính sign giống như trong chargeCard
+			$data['sign'] = md5($partnerKey . $cardInfo['code'] . $cardInfo['serial']);
+
+			$plugin->debugLogger->log(
+				"Added original card info to status check request for RequestID: $requestId",
+				"api"
+			);
+		} else {
+			// Nếu không có thông tin thẻ, sử dụng sign đơn giản
+			$data['sign'] = md5($partnerKey . $requestId);
+		}
 
 		// Log API status check request
 		$plugin->logger->info("[Donate/API] Checking card status - RequestID: $requestId");
@@ -150,7 +178,16 @@ final class TrumTheAPI {
 		// Debug logging - API status check request
 		if (isset($plugin->debugLogger)) {
 			$debugData = $data;
-			$debugData["sign"] = substr($data["sign"], 0, 8) . "...";
+			$signStr = DataTypeUtils::toString($debugData["sign"]);
+			$debugData["sign"] = substr($signStr, 0, 8) . "...";
+			if (isset($debugData["code"])) {
+				$codeStr = DataTypeUtils::toString($debugData["code"]);
+				$debugData["code"] = substr($codeStr, 0, 2) . "****" . substr($codeStr, -2);
+			}
+			if (isset($debugData["serial"])) {
+				$serialStr = DataTypeUtils::toString($debugData["serial"]);
+				$debugData["serial"] = substr($serialStr, 0, 4) . "****" . substr($serialStr, -4);
+			}
 
 			$plugin->debugLogger->logApi("STATUS_REQUEST", $debugData);
 		}
@@ -183,6 +220,14 @@ final class TrumTheAPI {
 		$status = $responseData['status'] ?? 'unknown';
 		$message = $responseData['message'] ?? 'no message';
 		$plugin->logger->info("[Donate/API] Received card status response - RequestID: $requestId, Status: $status, Message: $message");
+
+		// Special log for PENDING status to clarify it's being processed, not an error
+		if (isset($responseData['message']) && $responseData['message'] === "PENDING") {
+			$plugin->logger->info("[Donate/API] Card is still being processed - RequestID: $requestId, Status: PENDING. This is normal, not an error.");
+			if (isset($plugin->debugLogger)) {
+				$plugin->debugLogger->log("Card with RequestID: $requestId is still PENDING processing (status 99 with PENDING message). This is expected behavior.", "api");
+			}
+		}
 
 		// Debug logging - API status response
 		if (isset($plugin->debugLogger)) {

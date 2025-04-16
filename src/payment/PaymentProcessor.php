@@ -115,8 +115,16 @@ final class PaymentProcessor {
 			}
 
 			try {
-				// Check the status of the payment
-				$response = TrumTheAPI::checkCardStatus($requestId);
+				// Chuẩn bị thông tin thẻ gốc
+				$cardInfo = [
+					'telco' => $payment->getTelco(),
+					'code' => $payment->getCode(),
+					'serial' => $payment->getSerial(),
+					'amount' => $payment->getAmount()
+				];
+
+				// Kiểm tra trạng thái thanh toán, truyền thêm thông tin thẻ gốc
+				$response = TrumTheAPI::checkCardStatus($requestId, $cardInfo);
 
 				if ($response === null) {
 					// Skip if the API call failed

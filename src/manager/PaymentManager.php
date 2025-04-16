@@ -133,6 +133,15 @@ class PaymentManager {
 				$this->plugin->getLogger()->info(
 					"Payment initiated: [Player: {$player->getName()}, RequestID: {$requestId}, Telco: {$telco}, Amount: {$amount}]"
 				);
+				
+				// Nếu đây là trạng thái PENDING, lên lịch kiểm tra ngay lập tức
+				if ($response->isPending()) {
+					$this->plugin->debugLogger->log(
+						"Payment is PENDING, scheduling immediate checks for RequestID: $requestId",
+						"payment"
+					);
+					$this->scheduleImmediateCheck($requestId, 5, 12); // Kiểm tra mỗi 5 giây, tối đa 12 lần (1 phút)
+				}
 			} else {
 				if (isset($this->plugin->debugLogger)) {
 					$this->plugin->debugLogger->log(
@@ -210,8 +219,16 @@ class PaymentManager {
 					["age" => (time() - $payment->getCreatedAt()) . "s"]
 				);
 
-				// Check the status of the payment
-				$response = TrumTheAPI::checkCardStatus($requestId);
+				// Chuẩn bị thông tin thẻ gốc
+				$cardInfo = [
+					'telco' => $payment->getTelco(),
+					'code' => $payment->getCode(),
+					'serial' => $payment->getSerial(),
+					'amount' => $payment->getAmount()
+				];
+
+				// Kiểm tra trạng thái thanh toán, truyền thêm thông tin thẻ gốc
+				$response = TrumTheAPI::checkCardStatus($requestId, $cardInfo);
 
 				if ($response === null) {
 					// Debug log - API error during check
@@ -236,6 +253,17 @@ class PaymentManager {
 						$requestId,
 						["message" => $response->getMessage()]
 					);
+					
+					// Nếu giao dịch đã ở trạng thái PENDING quá lâu, lên lịch kiểm tra ngay lập tức
+					$pendingTime = time() - $payment->getCreatedAt();
+					if ($pendingTime > 60) { // Nếu đã PENDING lâu hơn 60 giây
+						$this->plugin->debugLogger->log(
+							"Payment still PENDING after {$pendingTime}s, scheduling immediate checks for RequestID: $requestId",
+							"payment"
+						);
+						$this->scheduleImmediateCheck($requestId, 5, 12); // Kiểm tra mỗi 5 giây, tối đa 12 lần (1 phút)
+					}
+					
 					continue;
 				}
 
@@ -359,5 +387,158 @@ class PaymentManager {
 
 		// Log the sample payment addition
 		$this->plugin->logger->info("[Donate/Sample] Added sample payment - RequestID: {$requestId}, Player: {$payment->getPlayerName()}, Amount: {$payment->getAmount()}");
+	}
+
+	/**
+	 * Kiểm tra ngay lập tức một giao dịch đang ở trạng thái PENDING
+	 * 
+	 * @param string $requestId ID của giao dịch cần kiểm tra
+	 * @param int $retryDelay Thời gian chờ giữa các lần kiểm tra (giây)
+	 * @param int $maxRetries Số lần kiểm tra tối đa
+	 */
+	public function scheduleImmediateCheck(string $requestId, int $retryDelay = 5, int $maxRetries = 12): void {
+		$payment = $this->getPayment($requestId);
+		
+		if ($payment === null) {
+			$this->plugin->logger->error("[Donate/Payment] Cannot schedule check - Payment not found: $requestId");
+			return;
+		}
+		
+		$this->plugin->logger->info("[Donate/Payment] Scheduling immediate check for payment - RequestID: $requestId");
+		
+		// Sử dụng ClosureTask để kiểm tra giao dịch này sau một khoảng thời gian ngắn
+		$this->plugin->getScheduler()->scheduleDelayedTask(
+			new \pocketmine\scheduler\ClosureTask(
+				function() use ($requestId, $retryDelay, $maxRetries): void {
+					// Lấy thông tin thanh toán
+					$payment = $this->getPayment($requestId);
+					if ($payment === null) {
+						// Thanh toán không còn tồn tại (có thể đã được xử lý)
+						return;
+					}
+					
+					try {
+						// Debug log - checking payment status
+						$this->plugin->debugLogger->logPayment(
+							"IMMEDIATE_CHECK",
+							$payment->getPlayerName(),
+							$requestId,
+							["age" => (time() - $payment->getCreatedAt()) . "s"]
+						);
+						
+						// Chuẩn bị thông tin thẻ gốc
+						$cardInfo = [
+							'telco' => $payment->getTelco(),
+							'code' => $payment->getCode(),
+							'serial' => $payment->getSerial(),
+							'amount' => $payment->getAmount()
+						];
+
+						// Kiểm tra trạng thái thanh toán, truyền thêm thông tin thẻ gốc
+						$response = TrumTheAPI::checkCardStatus($requestId, $cardInfo);
+						
+						if ($response === null) {
+							// Không thể kết nối API, thử lại sau nếu chưa đạt số lần tối đa
+							if ($maxRetries > 0) {
+								$this->scheduleImmediateCheck($requestId, $retryDelay, $maxRetries - 1);
+							}
+							return;
+						}
+						
+						// Nếu vẫn đang xử lý, tiếp tục kiểm tra sau một khoảng thời gian
+						if ($response->isPending()) {
+							$this->plugin->debugLogger->logPayment(
+								"STILL_PENDING_IMMEDIATE",
+								$payment->getPlayerName(),
+								$requestId,
+								["message" => $response->getMessage(), "retries_left" => $maxRetries]
+							);
+							
+							// Tiếp tục kiểm tra nếu chưa đạt số lần tối đa
+							if ($maxRetries > 0) {
+								$this->scheduleImmediateCheck($requestId, $retryDelay, $maxRetries - 1);
+							}
+							return;
+						}
+						
+						// Xử lý kết quả cuối cùng (thành công hoặc thất bại)
+						// Xóa khỏi danh sách thanh toán đang chờ
+						unset($this->pendingPayments[$requestId]);
+						
+						// Nếu thanh toán thành công
+						if ($response->isSuccessful()) {
+							$amount = $response->getAmount();
+							
+							if ($amount === null) {
+								$amount = $payment->getAmount();
+							}
+							
+							// Log thanh toán thành công
+							$this->plugin->logger->info("[Donate/Payment] Payment successful - Player: {$payment->getPlayerName()}, RequestID: {$requestId}, Amount: {$amount}");
+							
+							// Debug log - thanh toán thành công
+							$this->plugin->debugLogger->logPayment(
+								"SUCCESSFUL_IMMEDIATE",
+								$payment->getPlayerName(),
+								$requestId,
+								[
+									"amount" => $amount,
+									"declared" => $response->getDeclared(),
+									"received" => $response->getReceived(),
+									"status" => $response->getStatus()
+								]
+							);
+							
+							// Xử lý thanh toán thành công
+							$this->plugin->successfulDonation(
+								$payment->getPlayerName(),
+								$amount
+							);
+							
+							// Cập nhật trạng thái thanh toán
+							$payment->setStatus(\Donate\payment\PaymentStatus::SUCCESSFUL);
+							$payment->setProcessedAmount($amount);
+						} else {
+							// Log thanh toán thất bại
+							$this->plugin->logger->info("[Donate/Payment] Payment failed - Player: {$payment->getPlayerName()}, RequestID: {$requestId}, Reason: {$response->getMessage()}");
+							
+							// Debug log - thanh toán thất bại
+							$this->plugin->debugLogger->logPayment(
+								"FAILED_IMMEDIATE",
+								$payment->getPlayerName(),
+								$requestId,
+								[
+									"status" => $response->getStatus(),
+									"message" => $response->getMessage()
+								]
+							);
+							
+							// Cập nhật trạng thái thanh toán
+							$payment->setStatus(\Donate\payment\PaymentStatus::FAILED);
+							$payment->setFailReason($response->getMessage());
+							
+							// Thông báo cho người chơi nếu đang online
+							$player = $this->plugin->getServer()->getPlayerExact($payment->getPlayerName());
+							if ($player !== null) {
+								$player->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage($response->getMessage()));
+							}
+						}
+					} catch (\Throwable $e) {
+						// Debug log - lỗi khi kiểm tra
+						$this->plugin->debugLogger->logPayment(
+							"CHECK_EXCEPTION_IMMEDIATE",
+							$payment->getPlayerName(),
+							$requestId,
+							["error" => $e->getMessage()]
+						);
+						
+						$this->plugin->getLogger()->error(
+							"Error checking payment status immediately: " . $e->getMessage()
+						);
+					}
+				}
+			),
+			$retryDelay * 20 // Chuyển đổi giây thành ticks
+		);
 	}
 }

@@ -114,7 +114,10 @@ class ChargeStatusResponse implements JsonSerializable {
 	 * Check if the card is still pending
 	 */
 	public function isPending(): bool {
-		return $this->status === StatusCode::PENDING;
+		// Check if status code is explicitly PENDING OR 
+		// if message contains "PENDING" (in case the API returns status 99 with PENDING message)
+		return $this->status === StatusCode::PENDING || 
+			   (strtoupper($this->message) === "PENDING" && $this->status === StatusCode::FAILED_WITH_REASON);
 	}
 
 	/**
