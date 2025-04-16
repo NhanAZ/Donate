@@ -1,0 +1,11 @@
+2025-04-16 [10:14:11.623] [Server thread/INFO]: Test log entry from CONSOLE at 2025-04-16 10:14:11
+2025-04-16 [10:23:09.116] [Server thread/INFO]: [2025-04-16 10:23:09] [DEBUG/general] Plugin enabled successfully
+[2025-04-16 10:23:09] [DEBUG/general] Plugin enabled successfully
+2025-04-16 [10:23:34.858] [Server thread/INFO]: [Command] NhanAZ executed /donate
+2025-04-16 [10:23:34.858] [Server thread/INFO]: [Form] Opening donate form for player: NhanAZ
+2025-04-16 [10:23:34.858] [Server thread/INFO]: [Form] Sending donate form to player: NhanAZ
+2025-04-16 [10:23:45.269] [Server thread/INFO]: [Form] Player NhanAZ submitted form with empty serial or code
+2025-04-16 [10:23:45.269] [Server thread/INFO]: [2025-04-16 10:23:45] [DEBUG/payment] Player NhanAZ submitted form with empty serial or code
+[2025-04-16 10:23:45] [DEBUG/payment] Player NhanAZ submitted form with empty serial or code
+2025-04-16 [10:24:32.102] [Server thread/INFO]: [2025-04-16 10:24:32] [DEBUG/general] Plugin disabled
+[2025-04-16 10:24:32] [DEBUG/general] Plugin disabled

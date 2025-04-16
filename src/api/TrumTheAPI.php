@@ -61,6 +61,9 @@ final class TrumTheAPI {
 			"command" => "charging"
 		];
 		
+		// Log API request (masked sensitive data)
+		$plugin->logger->info("[API] Sending card charge request to TrumThe API - RequestID: $requestId, Telco: $telco, Amount: $amount");
+		
 		// Debug logging - API request
 		if (isset($plugin->debugLogger)) {
 			// Clone the data to avoid modifying the original
@@ -75,6 +78,9 @@ final class TrumTheAPI {
 
 		$result = self::postRequest($data);
 		if ($result === null) {
+			// Log the connection failure
+			$plugin->logger->error("[API] Failed to connect to TrumThe API for card charge - RequestID: $requestId");
+			
 			// Debug logging - API request failed
 			if (isset($plugin->debugLogger)) {
 				$plugin->debugLogger->logApi("CHARGE_FAILED", [], ["error" => "Connection failed"]);
@@ -84,12 +90,20 @@ final class TrumTheAPI {
 
 		$responseData = json_decode($result->getBody(), true);
 		if (!is_array($responseData)) {
+			// Log the response parse error
+			$plugin->logger->error("[API] Failed to parse TrumThe API response for card charge - RequestID: $requestId, Raw: " . substr($result->getBody(), 0, 100));
+			
 			// Debug logging - API response parse error
 			if (isset($plugin->debugLogger)) {
 				$plugin->debugLogger->logApi("CHARGE_PARSE_ERROR", [], ["raw" => substr($result->getBody(), 0, 100)]);
 			}
 			return null;
 		}
+		
+		// Log the API response
+		$status = $responseData['status'] ?? 'unknown';
+		$message = $responseData['message'] ?? 'no message';
+		$plugin->logger->info("[API] Received card charge response - RequestID: $requestId, Status: $status, Message: $message");
 		
 		// Debug logging - API response
 		if (isset($plugin->debugLogger)) {
@@ -130,6 +144,9 @@ final class TrumTheAPI {
 			"command" => "check"
 		];
 		
+		// Log API status check request
+		$plugin->logger->info("[API] Checking card status - RequestID: $requestId");
+		
 		// Debug logging - API status check request
 		if (isset($plugin->debugLogger)) {
 			$debugData = $data;
@@ -140,6 +157,9 @@ final class TrumTheAPI {
 
 		$result = self::postRequest($data);
 		if ($result === null) {
+			// Log the connection failure
+			$plugin->logger->error("[API] Failed to connect to TrumThe API for status check - RequestID: $requestId");
+			
 			// Debug logging - API request failed
 			if (isset($plugin->debugLogger)) {
 				$plugin->debugLogger->logApi("STATUS_FAILED", [], ["error" => "Connection failed"]);
@@ -149,12 +169,20 @@ final class TrumTheAPI {
 
 		$responseData = json_decode($result->getBody(), true);
 		if (!is_array($responseData)) {
+			// Log the response parse error
+			$plugin->logger->error("[API] Failed to parse TrumThe API response for status check - RequestID: $requestId, Raw: " . substr($result->getBody(), 0, 100));
+			
 			// Debug logging - API response parse error
 			if (isset($plugin->debugLogger)) {
 				$plugin->debugLogger->logApi("STATUS_PARSE_ERROR", [], ["raw" => substr($result->getBody(), 0, 100)]);
 			}
 			return null;
 		}
+		
+		// Log the API response
+		$status = $responseData['status'] ?? 'unknown';
+		$message = $responseData['message'] ?? 'no message';
+		$plugin->logger->info("[API] Received card status response - RequestID: $requestId, Status: $status, Message: $message");
 		
 		// Debug logging - API status response
 		if (isset($plugin->debugLogger)) {

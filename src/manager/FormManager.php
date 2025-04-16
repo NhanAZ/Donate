@@ -22,6 +22,7 @@ class FormManager {
 	 * Send the donate form to a player
 	 */
 	public function sendDonateForm(Player $player): void {
+		$this->plugin->logger->info("[Form] Sending donate form to player: " . $player->getName());
 		$form = $this->createDonateForm();
 		$player->sendForm($form);
 	}
@@ -70,6 +71,7 @@ class FormManager {
 			public function handleResponse(Player $player, mixed $data): void {
 				// Check if form was closed
 				if ($data === null) {
+					$this->plugin->logger->info("[Form] Player " . $player->getName() . " closed the donate form");
 					return;
 				}
 
@@ -108,6 +110,7 @@ class FormManager {
 					$player->sendMessage(Constant::PREFIX . "§c" . "Vui lòng không để trống số sê-ri hoặc mã thẻ!");
 					
 					// Ghi log debug
+					$this->plugin->logger->info("[Form] Player " . $player->getName() . " submitted form with empty serial or code");
 					$this->plugin->debugLogger->log(
 						"Player {$player->getName()} submitted form with empty serial or code",
 						"payment"
@@ -123,6 +126,7 @@ class FormManager {
 				$requestId = Uuid::uuid4()->toString();
 				
 				// Debug logging - form submission
+				$this->plugin->logger->info("[Payment] Player " . $player->getName() . " submitted card payment - Telco: $telco, Amount: $amount");
 				$this->plugin->debugLogger->log(
 					"Player {$player->getName()} submitted donation form - Telco: $telco, Amount: $amount", 
 					"payment"

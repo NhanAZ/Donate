@@ -83,21 +83,47 @@ class DebugLogger {
 
         $prefix = TextFormat::GOLD . "[Debug]" . TextFormat::RESET . " ";
         $formattedMessage = $prefix . $message;
+        $timestamp = date('[Y-m-d H:i:s]');
 
-        // Log to console
+        // Log to console - sử dụng info thay vì debug để luôn hiển thị trên console
         if ($logToConsole) {
-            $this->plugin->getLogger()->debug($message);
+            // Sử dụng info thay vì debug để hiển thị trên console bất kể cài đặt debug của PocketMine
+            $this->plugin->getLogger()->info("[DEBUG/" . strtoupper($category) . "] " . $message);
         }
 
         // Log to plugin's log file
         if (isset($this->plugin->logger)) {
-            $logLine = date('[H:i:s]') . " [DEBUG/$category] " . TextFormat::clean($message);
-            $this->plugin->logger->debug($logLine);
+            $logLine = $timestamp . " [DEBUG/$category] " . TextFormat::clean($message);
+            // Sử dụng info thay vì debug để đảm bảo ghi vào file log
+            $this->plugin->logger->info($logLine);
+            
+            // Thử ghi trực tiếp vào file nếu logging thông thường không hoạt động
+            $logFile = $this->plugin->getDataFolder() . "log.log";
+            $this->writeToLogFile($logFile, $logLine);
         }
 
         // Notify admin players
         if ($this->notifyAdmins && $notifyAdmins) {
             $this->notifyAdmins($formattedMessage);
+        }
+    }
+
+    /**
+     * Ghi trực tiếp vào file log để đảm bảo nội dung được lưu
+     */
+    private function writeToLogFile(string $logFile, string $message): void {
+        // Thêm dòng mới vào cuối nếu chưa có
+        if (!str_ends_with($message, PHP_EOL)) {
+            $message .= PHP_EOL;
+        }
+        
+        // Thử ghi vào file, sử dụng FILE_APPEND để thêm vào cuối file
+        $result = @file_put_contents($logFile, $message, FILE_APPEND | LOCK_EX);
+        
+        // Nếu ghi thất bại, thử tạo thư mục (phòng hờ)
+        if ($result === false) {
+            @mkdir(dirname($logFile), 0755, true);
+            @file_put_contents($logFile, $message, FILE_APPEND | LOCK_EX);
         }
     }
 

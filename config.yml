@@ -1,26 +1,15 @@
 ---
-# Donate Plugin Configuration
-
-# Partner credentials (từ trumthe.vn)
-partner_id: "" # Your partner ID from trumthe.vn
-partner_key: "" # Your partner key from trumthe.vn
-
-# Reward settings
-bonus_multiplier: 1.0  # Hệ số nhân điểm khi nạp thẻ thành công (1.0 = 100%)
-
-# API settings
-api_url: "https://trumthe.vn/chargingws/v2"
-api_timeout: 10  # Thời gian timeout khi gọi API (giây)
-
-# Task settings
-check_interval: 30  # Kiểm tra trạng thái thanh toán sau mỗi x giây
-
-# Debug Configuration
+partner_id: "71908401054"
+partner_key: 692a126ba6b5119736656c382ab3041f
+bonus_multiplier: 1
+api_url: https://trumthe.vn/chargingws/v2
+api_timeout: 10
+check_interval: 30
 debug:
-  enabled: true # Set to true to enable debug logging
-  notify_admins: true # Whether to send debug messages to online admins
-  categories: # Debug categories to enable
+  enabled: true
+  notify_admins: true
+  categories:
     general: true
-    payment: true # Card payment processing
-    api: true # API request/response
- 
+    payment: true
+    api: true
+...
