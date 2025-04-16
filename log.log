@@ -9,3 +9,46 @@
 [2025-04-16 10:23:45] [DEBUG/payment] Player NhanAZ submitted form with empty serial or code
 2025-04-16 [10:24:32.102] [Server thread/INFO]: [2025-04-16 10:24:32] [DEBUG/general] Plugin disabled
 [2025-04-16 10:24:32] [DEBUG/general] Plugin disabled
+2025-04-16 [10:28:50.876] [Server thread/INFO]: [2025-04-16 10:28:50] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+[2025-04-16 10:28:50] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+2025-04-16 [10:29:04.711] [Server thread/INFO]: [Donate/Command] Console executed /donatedebug
+2025-04-16 [10:29:12.054] [Server thread/INFO]: [Donate/Command] Console executed /donatedebug sampledata
+2025-04-16 [10:29:12.072] [Server thread/INFO]: [Donate/Sample] Added sample payment - RequestID: sample-67ff86780eb28, Player: Console, Amount: 100000
+2025-04-16 [10:29:21.945] [Server thread/INFO]: [Donate/Payment] Checking 1 pending payments
+2025-04-16 [10:29:21.946] [Server thread/INFO]: [2025-04-16 10:29:21] [Donate/DEBUG:PAYMENT] Checking 1 pending payments
+[2025-04-16 10:29:21] [Donate/DEBUG:PAYMENT] Checking 1 pending payments
+2025-04-16 [10:29:50.205] [Server thread/INFO]: [Donate/Command] Console executed /donatedebug peding
+2025-04-16 [10:29:51.944] [Server thread/INFO]: [Donate/Payment] Checking 1 pending payments
+2025-04-16 [10:29:51.946] [Server thread/INFO]: [2025-04-16 10:29:51] [Donate/DEBUG:PAYMENT] Checking 1 pending payments
+[2025-04-16 10:29:51] [Donate/DEBUG:PAYMENT] Checking 1 pending payments
+2025-04-16 [10:29:51.948] [Server thread/INFO]: [2025-04-16 10:29:51] [Donate/DEBUG:PAYMENT] Payment CHECKING - Player: Console, RequestID: sample-67ff86780eb28, Details: age: 39s
+[2025-04-16 10:29:51] [Donate/DEBUG:PAYMENT] Payment CHECKING - Player: Console, RequestID: sample-67ff86780eb28, Details: age: 39s
+2025-04-16 [10:29:51.955] [Server thread/INFO]: [Donate/API] Checking card status - RequestID: sample-67ff86780eb28
+2025-04-16 [10:29:51.957] [Server thread/INFO]: [2025-04-16 10:29:51] [Donate/DEBUG:API] API STATUS_REQUEST - Request: {"request_id":"sample-67ff86780eb28","partner_id":"71908401054","sign":"6a72dbcf...","command":"check"}
+[2025-04-16 10:29:51] [Donate/DEBUG:API] API STATUS_REQUEST - Request: {"request_id":"sample-67ff86780eb28","partner_id":"71908401054","sign":"6a72dbcf...","command":"check"}
+2025-04-16 [10:29:53.213] [Server thread/INFO]: [Donate/API] Received card status response - RequestID: sample-67ff86780eb28, Status: 102, Message: INPUT_DATA_INCORRECT
+2025-04-16 [10:29:53.213] [Server thread/INFO]: [2025-04-16 10:29:53] [Donate/DEBUG:API] API STATUS_RESPONSE - Response: {"status":102,"message":"INPUT_DATA_INCORRECT"}
+[2025-04-16 10:29:53] [Donate/DEBUG:API] API STATUS_RESPONSE - Response: {"status":102,"message":"INPUT_DATA_INCORRECT"}
+2025-04-16 [10:29:53.219] [Server thread/INFO]: [Donate/Payment] Payment failed - Player: Console, RequestID: sample-67ff86780eb28, Reason: INPUT_DATA_INCORRECT
+2025-04-16 [10:29:53.220] [Server thread/INFO]: [2025-04-16 10:29:53] [Donate/DEBUG:PAYMENT] Payment FAILED - Player: Console, RequestID: sample-67ff86780eb28, Details: status: 102, message: INPUT_DATA_INCORRECT
+[2025-04-16 10:29:53] [Donate/DEBUG:PAYMENT] Payment FAILED - Player: Console, RequestID: sample-67ff86780eb28, Details: status: 102, message: INPUT_DATA_INCORRECT
+2025-04-16 [10:30:21.327] [Server thread/INFO]: [Donate/Command] Console executed /topdonate
+2025-04-16 [10:30:21.327] [Server thread/INFO]: [Donate/TopDonate] Player Console requested top donators page: 1
+2025-04-16 [10:30:25.527] [Server thread/INFO]: [Donate/Command] Console executed /topdonate 2
+2025-04-16 [10:30:25.528] [Server thread/INFO]: [Donate/TopDonate] Player Console requested top donators page: 2
+2025-04-16 [10:31:08.856] [Server thread/INFO]: [Donate/Command] NhanAZ executed /topdonate
+2025-04-16 [10:31:08.856] [Server thread/INFO]: [Donate/TopDonate] Player NhanAZ requested top donators page: 1
+2025-04-16 [10:31:20.771] [Server thread/INFO]: [Donate/Command] NhanAZ executed /topdonate
+2025-04-16 [10:31:20.771] [Server thread/INFO]: [Donate/TopDonate] Player NhanAZ requested top donators page: 1
+2025-04-16 [10:36:59.247] [Server thread/INFO]: [2025-04-16 10:36:59] [Donate/DEBUG:GENERAL] Plugin disabled
+[2025-04-16 10:36:59] [Donate/DEBUG:GENERAL] Plugin disabled
+2025-04-16 [10:37:12.345] [Server thread/INFO]: [2025-04-16 10:37:12] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+[2025-04-16 10:37:12] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+2025-04-16 [10:37:30.169] [Server thread/INFO]: [Donate/Command] NhanAZ executed /donate
+2025-04-16 [10:37:30.169] [Server thread/INFO]: [Donate/Form] Opening donate form for player: NhanAZ
+2025-04-16 [10:37:30.170] [Server thread/INFO]: [Donate/Form] Sending donate form to player: NhanAZ
+2025-04-16 [10:37:42.925] [Server thread/INFO]: [Donate/Form] Player NhanAZ closed the donate form
+2025-04-16 [10:37:46.391] [Server thread/INFO]: [Donate/Command] NhanAZ executed /topdonate
+2025-04-16 [10:37:46.391] [Server thread/INFO]: [Donate/TopDonate] Player NhanAZ requested top donators page: 1
+2025-04-16 [10:37:53.506] [Server thread/INFO]: [2025-04-16 10:37:53] [Donate/DEBUG:GENERAL] Plugin disabled
+[2025-04-16 10:37:53] [Donate/DEBUG:GENERAL] Plugin disabled

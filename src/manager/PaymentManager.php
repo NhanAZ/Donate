@@ -350,4 +350,14 @@ class PaymentManager {
 	public function hasPendingPayments(): bool {
 		return !empty($this->pendingPayments);
 	}
+
+	/**
+	 * Thêm thanh toán mẫu để test
+	 */
+	public function addSamplePayment(string $requestId, \Donate\payment\CardPayment $payment): void {
+		$this->pendingPayments[$requestId] = $payment;
+		
+		// Log the sample payment addition
+		$this->plugin->logger->info("[Donate/Sample] Added sample payment - RequestID: {$requestId}, Player: {$payment->getPlayerName()}, Amount: {$payment->getAmount()}");
+	}
 }

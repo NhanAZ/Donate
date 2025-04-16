@@ -164,6 +164,18 @@ class Donate extends PluginBase {
 						$this->testLogWriting($sender);
 						break;
 						
+					case "sampledata":
+						$this->addSampleData($sender);
+						break;
+						
+					case "samplepending":
+						$count = 5; // Số lượng giao dịch mẫu mặc định
+						if (isset($args[1]) && is_numeric($args[1])) {
+							$count = max(1, min(20, (int) $args[1])); // Hạn chế từ 1-20 giao dịch mẫu
+						}
+						$this->addSamplePendingPayments($sender, $count);
+						break;
+						
 					default:
 						$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Các lệnh debug:"));
 						
@@ -185,6 +197,11 @@ class Donate extends PluginBase {
 						$sender->sendMessage("§7 /donatedebug loginfo §f- Kiểm tra thông tin file log");
 						$sender->sendMessage("§7 /donatedebug clearlog §f- Xóa nội dung file log");
 						$sender->sendMessage("§7 /donatedebug testlog §f- Kiểm tra khả năng ghi log");
+						
+						// Dữ liệu mẫu
+						$sender->sendMessage("§e§l● Dữ liệu mẫu:");
+						$sender->sendMessage("§7 /donatedebug sampledata §f- Thêm dữ liệu mẫu để test");
+						$sender->sendMessage("§7 /donatedebug samplepending [số lượng] §f- Thêm giao dịch đang chờ xử lý mẫu");
 						break;
 				}
 				
@@ -602,5 +619,147 @@ class Donate extends PluginBase {
 		$bytes /= (1 << (10 * $pow));
 		
 		return round($bytes, 2) . ' ' . $units[$pow];
+	}
+
+	/**
+	 * Thêm dữ liệu mẫu để test
+	 */
+	private function addSampleData(CommandSender $sender): void {
+		// Thêm dữ liệu mẫu cho donateData.yml để test lệnh /topdonate
+		$sampleData = [
+			"NhanAZ" => 500000,
+			"Steve" => 200000,
+			"Alex" => 350000,
+			"Notch" => 1000000,
+			"Herobrine" => 900000,
+			"Jeb" => 750000,
+			"Dinnerbone" => 450000,
+			"WillowWisp" => 180000,
+			"Enderman" => 220000, 
+			"Creeper" => 150000,
+			"Skeleton" => 50000,
+			"Zombie" => 75000,
+			"Tester1" => 25000,
+			"Tester2" => 35000,
+			"Tester3" => 45000,
+			"VIPPlayer" => 650000,
+			"Regular" => 120000,
+			"NewMember" => 10000,
+			"ServerSponsor" => 1500000,
+			"MasterBuilder" => 300000,
+		];
+		
+		// Hiện tại trong donateData
+		$currentData = $this->donateData->getAll();
+		
+		// Hợp nhất dữ liệu
+		if (!empty($currentData)) {
+			$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Đã tìm thấy dữ liệu hiện có, đang hợp nhất..."));
+			
+			// Chỉ thêm vào người chơi mới
+			foreach ($sampleData as $player => $amount) {
+				if (!isset($currentData[$player])) {
+					$currentData[$player] = $amount;
+				}
+			}
+			
+			// Lưu lại dữ liệu hợp nhất
+			$this->donateData->setAll($currentData);
+		} else {
+			// Nếu không có dữ liệu, thêm mới hoàn toàn
+			$this->donateData->setAll($sampleData);
+		}
+		
+		// Lưu dữ liệu
+		$this->donateData->save();
+		
+		// Tạo một thanh toán mẫu đang chờ xử lý
+		$requestId = "sample-" . uniqid();
+		$telco = "VIETTEL";
+		$code = "123456789012";
+		$serial = "987654321098";
+		$amount = 100000;
+		
+		$payment = new \Donate\payment\CardPayment(
+			$requestId,
+			$sender instanceof Player ? $sender->getName() : "Console",
+			$telco,
+			$code,
+			$serial,
+			$amount,
+			time()
+		);
+		
+		// Thêm vào danh sách thanh toán đang chờ
+		$this->paymentManager->addSamplePayment($requestId, $payment);
+		
+		$sender->sendMessage(\Donate\utils\MessageTranslator::formatSuccessMessage("Đã thêm dữ liệu mẫu thành công!"));
+		$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("- Đã thêm 20 người chơi với số tiền donate mẫu"));
+		$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("- Đã thêm 1 giao dịch đang chờ xử lý với ID: " . substr($requestId, 0, 10) . "..."));
+		$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Bạn có thể test lệnh /topdonate và /donatedebug pending ngay bây giờ"));
+	}
+
+	/**
+	 * Thêm giao dịch đang chờ xử lý mẫu
+	 */
+	private function addSamplePendingPayments(CommandSender $sender, int $count): void {
+		$telcos = ["VIETTEL", "MOBIFONE", "VINAPHONE", "VIETNAMOBILE", "ZING"];
+		$amounts = [10000, 20000, 50000, 100000, 200000, 500000];
+		$names = [
+			$sender instanceof Player ? $sender->getName() : "Console",
+			"Steve", "Alex", "Notch", "Herobrine", "Jeb", "Dinnerbone",
+			"Player1", "Player2", "Player3", "Player4", "Player5",
+			"VIPMember", "RegularMember", "NewMember"
+		];
+		
+		$addedPayments = [];
+		
+		for ($i = 0; $i < $count; $i++) {
+			// Tạo giao dịch ngẫu nhiên
+			$requestId = "sample-" . uniqid() . "-" . ($i + 1);
+			$telco = $telcos[array_rand($telcos)];
+			$amount = $amounts[array_rand($amounts)];
+			$playerName = $names[array_rand($names)];
+			
+			// Tạo mã và serial mẫu
+			$code = mt_rand(100000000000, 999999999999);
+			$serial = mt_rand(100000000000, 999999999999);
+			
+			// Tạo thời gian ngẫu nhiên trong 10 phút qua
+			$createdTime = time() - mt_rand(0, 600);
+			
+			$payment = new \Donate\payment\CardPayment(
+				$requestId,
+				$playerName,
+				$telco,
+				(string) $code,
+				(string) $serial,
+				$amount,
+				$createdTime
+			);
+			
+			// Thêm vào danh sách
+			$this->paymentManager->addSamplePayment($requestId, $payment);
+			$addedPayments[] = [
+				"id" => substr($requestId, 0, 8) . "...",
+				"player" => $playerName,
+				"amount" => $amount,
+				"telco" => $telco,
+				"time" => date("H:i:s", $createdTime)
+			];
+		}
+		
+		$sender->sendMessage(\Donate\utils\MessageTranslator::formatSuccessMessage("Đã thêm $count giao dịch đang chờ xử lý mẫu!"));
+		
+		// Hiển thị danh sách các giao dịch vừa thêm
+		if ($count <= 10) { // Chỉ hiển thị chi tiết nếu ít hơn 10 giao dịch
+			$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Danh sách giao dịch đã thêm:"));
+			foreach ($addedPayments as $p) {
+				$formattedAmount = number_format($p["amount"], 0, ",", ".");
+				$sender->sendMessage("§7- §f{$p["player"]} §7| §f{$formattedAmount}đ §7| §f{$p["telco"]} §7| §f{$p["time"]} §7| §fID: {$p["id"]}");
+			}
+		}
+		
+		$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Dùng lệnh /donatedebug pending để xem danh sách"));
 	}
 }
