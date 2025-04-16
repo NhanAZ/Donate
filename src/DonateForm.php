@@ -40,21 +40,21 @@ class DonateForm {
 		}
 
 		$this->plugin->debugLogger->log("Player " . $player->getName() . " submitted donate form", "form");
-		
+
 		// Ensure $data is an array with required keys
 		if (!is_array($data) || !isset($data[1], $data[2], $data[3])) {
 			$this->plugin->debugLogger->log("Invalid form data received from player " . $player->getName(), "form");
 			$player->sendMessage(MessageTranslator::formatErrorMessage("Dữ liệu form không hợp lệ!"));
 			return;
 		}
-		
+
 		$telcos = ["VIETTEL", "MOBIFONE", "VINAPHONE"];
 		$telco = $telcos[$data[1]];
 		$code = (string)$data[2];
 		$serial = (string)$data[3];
 
 		$this->plugin->debugLogger->log("Form data: telco=$telco, code=" . substr($code, 0, 4) . "..., serial=" . substr($serial, 0, 4) . "...", "form");
-		
+
 		// Validate card code
 		if (empty($code) || !is_string($code) || strlen($code) < 10) {
 			$this->plugin->debugLogger->log("Invalid card code from player " . $player->getName(), "form");
@@ -81,7 +81,7 @@ class DonateForm {
 		// Tạo payload để gửi lên API
 		$requestId = uniqid();
 		$this->plugin->debugLogger->log("Generated request ID: $requestId for player " . $player->getName(), "form");
-		
+
 		// Lưu lại thông tin giao dịch đang xử lý
 		$payment = new \Donate\payment\CardPayment(
 			$requestId,
@@ -96,7 +96,7 @@ class DonateForm {
 		// TODO: Implement addPendingPayment method in PaymentManager
 		//$this->paymentManager->addPendingPayment($requestId, $payment);
 		$this->plugin->debugLogger->log("Added pending payment with ID: $requestId for player " . $player->getName(), "payment");
-		
+
 		// Thông báo
 		$player->sendMessage(MessageTranslator::formatInfoMessage("§l§f❖ §6Thông Tin Giao Dịch §f❖"));
 		$player->sendMessage("§l§f⟩§6 Mã giao dịch: §f" . substr($requestId, 0, 10));
@@ -110,15 +110,15 @@ class DonateForm {
 		// TODO: Implement handleCardPayment method in PaymentManager
 		//$success = $this->paymentManager->handleCardPayment($payment);
 		$response = $this->plugin->getPaymentManager()->processCardPayment(
-            $player,
-            $telco,
-            $code,
-            $serial,
-            0, // Amount will be determined by the card
-            $requestId
-        );
+			$player,
+			$telco,
+			$code,
+			$serial,
+			0, // Amount will be determined by the card
+			$requestId
+		);
 		$success = $response !== null && ($response->isSuccessful() || $response->isPending());
-		
+
 		if (!$success) {
 			$this->plugin->debugLogger->log("Failed to process payment for player " . $player->getName(), "payment");
 			$player->sendMessage(MessageTranslator::formatErrorMessage("Có lỗi xảy ra khi xử lý thẻ. Vui lòng liên hệ Admin!"));

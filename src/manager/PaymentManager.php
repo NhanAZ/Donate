@@ -52,7 +52,7 @@ class PaymentManager {
 		try {
 			// Log payment attempt
 			$this->plugin->logger->info("[Donate/Payment] Processing card payment - Player: {$player->getName()}, RequestID: {$requestId}, Telco: {$telco}, Amount: {$amount}");
-			
+
 			// Debug logging - payment attempt
 			$this->plugin->debugLogger->logPayment(
 				"ATTEMPTED",
@@ -65,7 +65,7 @@ class PaymentManager {
 					"code" => substr($code, 0, 2) . "****" . substr($code, -2)
 				]
 			);
-			
+
 			// Send debug message to player if they have admin permission
 			if ($player->hasPermission("donate.admin")) {
 				$this->plugin->debugLogger->sendToPlayer(
@@ -74,7 +74,7 @@ class PaymentManager {
 					"payment"
 				);
 			}
-			
+
 			// Call the API to charge the card
 			$response = TrumTheAPI::chargeCard(
 				$telco,
@@ -87,12 +87,12 @@ class PaymentManager {
 			if ($response === null) {
 				// Debug logging - API connection error
 				$this->plugin->debugLogger->logPayment(
-					"ERROR", 
-					$player->getName(), 
-					$requestId, 
+					"ERROR",
+					$player->getName(),
+					$requestId,
 					["reason" => "API Connection Failed"]
 				);
-				
+
 				// Create a failed response if the API call failed
 				return new ChargeResponse(
 					-1,
@@ -117,18 +117,18 @@ class PaymentManager {
 
 				// Log payment pending
 				$this->plugin->logger->info("[Donate/Payment] Card payment pending - Player: {$player->getName()}, RequestID: {$requestId}, Status: {$response->getStatus()}");
-				
+
 				// Debug logging - payment pending
 				$this->plugin->debugLogger->logPayment(
-					"PENDING", 
-					$player->getName(), 
-					$requestId, 
+					"PENDING",
+					$player->getName(),
+					$requestId,
 					[
 						"status" => $response->getStatus(),
 						"message" => $response->getMessage()
 					]
 				);
-				
+
 				// Log the payment attempt
 				$this->plugin->getLogger()->info(
 					"Payment initiated: [Player: {$player->getName()}, RequestID: {$requestId}, Telco: {$telco}, Amount: {$amount}]"
@@ -140,12 +140,12 @@ class PaymentManager {
 						"payment"
 					);
 				}
-				
+
 				// Debug logging - payment rejected immediately
 				$this->plugin->debugLogger->logPayment(
-					"REJECTED", 
-					$player->getName(), 
-					$requestId, 
+					"REJECTED",
+					$player->getName(),
+					$requestId,
 					[
 						"status" => $response->getStatus(),
 						"message" => $response->getMessage()
@@ -156,12 +156,12 @@ class PaymentManager {
 			return $response;
 		} catch (InternetException $e) {
 			$this->plugin->getLogger()->error("Error processing payment: " . $e->getMessage());
-			
+
 			// Debug logging - exception during payment
 			$this->plugin->debugLogger->logPayment(
-				"EXCEPTION", 
-				$player->getName(), 
-				$requestId, 
+				"EXCEPTION",
+				$player->getName(),
+				$requestId,
 				["error" => $e->getMessage()]
 			);
 
@@ -180,13 +180,13 @@ class PaymentManager {
 	 */
 	public function checkPendingPayments(): array {
 		$processedPayments = [];
-		
+
 		// Log the pending payment check
 		$pendingCount = count($this->pendingPayments);
 		if ($pendingCount > 0) {
 			$this->plugin->logger->info("[Donate/Payment] Checking " . $pendingCount . " pending payments");
 		}
-		
+
 		// Debug log number of pending payments
 		if ($this->hasPendingPayments()) {
 			$this->plugin->debugLogger->log(
@@ -204,20 +204,20 @@ class PaymentManager {
 			try {
 				// Debug log - checking payment status
 				$this->plugin->debugLogger->logPayment(
-					"CHECKING", 
-					$payment->getPlayerName(), 
+					"CHECKING",
+					$payment->getPlayerName(),
 					$requestId,
 					["age" => (time() - $payment->getCreatedAt()) . "s"]
 				);
-				
+
 				// Check the status of the payment
 				$response = TrumTheAPI::checkCardStatus($requestId);
 
 				if ($response === null) {
 					// Debug log - API error during check
 					$this->plugin->debugLogger->logPayment(
-						"CHECK_ERROR", 
-						$payment->getPlayerName(), 
+						"CHECK_ERROR",
+						$payment->getPlayerName(),
 						$requestId,
 						["reason" => "API Connection Failed"]
 					);
@@ -231,8 +231,8 @@ class PaymentManager {
 				if ($response->isPending()) {
 					// Debug log - still pending
 					$this->plugin->debugLogger->logPayment(
-						"STILL_PENDING", 
-						$payment->getPlayerName(), 
+						"STILL_PENDING",
+						$payment->getPlayerName(),
 						$requestId,
 						["message" => $response->getMessage()]
 					);
@@ -252,11 +252,11 @@ class PaymentManager {
 
 					// Log successful payment
 					$this->plugin->logger->info("[Donate/Payment] Payment successful - Player: {$payment->getPlayerName()}, RequestID: {$requestId}, Amount: {$amount}");
-					
+
 					// Debug log - successful payment
 					$this->plugin->debugLogger->logPayment(
-						"SUCCESSFUL", 
-						$payment->getPlayerName(), 
+						"SUCCESSFUL",
+						$payment->getPlayerName(),
 						$requestId,
 						[
 							"amount" => $amount,
@@ -265,7 +265,7 @@ class PaymentManager {
 							"status" => $response->getStatus()
 						]
 					);
-					
+
 					// Process successful payment
 					$this->plugin->successfulDonation(
 						$payment->getPlayerName(),
@@ -282,18 +282,18 @@ class PaymentManager {
 				} else {
 					// Log failed payment
 					$this->plugin->logger->info("[Donate/Payment] Payment failed - Player: {$payment->getPlayerName()}, RequestID: {$requestId}, Reason: {$response->getMessage()}");
-					
+
 					// Debug log - failed payment
 					$this->plugin->debugLogger->logPayment(
-						"FAILED", 
-						$payment->getPlayerName(), 
+						"FAILED",
+						$payment->getPlayerName(),
 						$requestId,
 						[
 							"status" => $response->getStatus(),
 							"message" => $response->getMessage()
 						]
 					);
-					
+
 					// Log failed payment
 					$this->plugin->getLogger()->info(
 						"Payment failed: [Player: {$payment->getPlayerName()}, RequestID: {$requestId}, Reason: {$response->getMessage()}]"
@@ -313,12 +313,12 @@ class PaymentManager {
 			} catch (InternetException $e) {
 				// Debug log - exception during check
 				$this->plugin->debugLogger->logPayment(
-					"CHECK_EXCEPTION", 
-					$payment->getPlayerName(), 
+					"CHECK_EXCEPTION",
+					$payment->getPlayerName(),
 					$requestId,
 					["error" => $e->getMessage()]
 				);
-				
+
 				$this->plugin->getLogger()->error(
 					"Error checking payment status: " . $e->getMessage()
 				);
@@ -356,7 +356,7 @@ class PaymentManager {
 	 */
 	public function addSamplePayment(string $requestId, \Donate\payment\CardPayment $payment): void {
 		$this->pendingPayments[$requestId] = $payment;
-		
+
 		// Log the sample payment addition
 		$this->plugin->logger->info("[Donate/Sample] Added sample payment - RequestID: {$requestId}, Player: {$payment->getPlayerName()}, Amount: {$payment->getAmount()}");
 	}

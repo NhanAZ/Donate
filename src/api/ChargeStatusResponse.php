@@ -225,7 +225,7 @@ class ChargeStatusResponse implements JsonSerializable {
 			StatusCode::FAILED_WITH_REASON => $this->message,
 			default => $this->message
 		};
-		
+
 		return \Donate\utils\MessageTranslator::formatErrorMessage($message);
 	}
 

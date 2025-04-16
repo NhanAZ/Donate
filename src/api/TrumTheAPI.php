@@ -60,10 +60,10 @@ final class TrumTheAPI {
 			"sign" => $sign,
 			"command" => "charging"
 		];
-		
+
 		// Log API request (masked sensitive data)
 		$plugin->logger->info("[Donate/API] Sending card charge request to TrumThe API - RequestID: $requestId, Telco: $telco, Amount: $amount");
-		
+
 		// Debug logging - API request
 		if (isset($plugin->debugLogger)) {
 			// Clone the data to avoid modifying the original
@@ -72,7 +72,7 @@ final class TrumTheAPI {
 			$debugData["code"] = substr($code, 0, 2) . "****" . substr($code, -2);
 			$debugData["serial"] = substr($serial, 0, 4) . "****" . substr($serial, -4);
 			$debugData["sign"] = substr($sign, 0, 8) . "...";
-			
+
 			$plugin->debugLogger->logApi("CHARGE_REQUEST", $debugData);
 		}
 
@@ -80,7 +80,7 @@ final class TrumTheAPI {
 		if ($result === null) {
 			// Log the connection failure
 			$plugin->logger->error("[Donate/API] Failed to connect to TrumThe API for card charge - RequestID: $requestId");
-			
+
 			// Debug logging - API request failed
 			if (isset($plugin->debugLogger)) {
 				$plugin->debugLogger->logApi("CHARGE_FAILED", [], ["error" => "Connection failed"]);
@@ -92,19 +92,19 @@ final class TrumTheAPI {
 		if (!is_array($responseData)) {
 			// Log the response parse error
 			$plugin->logger->error("[Donate/API] Failed to parse TrumThe API response for card charge - RequestID: $requestId, Raw: " . substr($result->getBody(), 0, 100));
-			
+
 			// Debug logging - API response parse error
 			if (isset($plugin->debugLogger)) {
 				$plugin->debugLogger->logApi("CHARGE_PARSE_ERROR", [], ["raw" => substr($result->getBody(), 0, 100)]);
 			}
 			return null;
 		}
-		
+
 		// Log the API response
 		$status = $responseData['status'] ?? 'unknown';
 		$message = $responseData['message'] ?? 'no message';
 		$plugin->logger->info("[Donate/API] Received card charge response - RequestID: $requestId, Status: $status, Message: $message");
-		
+
 		// Debug logging - API response
 		if (isset($plugin->debugLogger)) {
 			$plugin->debugLogger->logApi("CHARGE_RESPONSE", [], $responseData);
@@ -143,15 +143,15 @@ final class TrumTheAPI {
 			"sign" => md5($partnerKey . $requestId),
 			"command" => "check"
 		];
-		
+
 		// Log API status check request
 		$plugin->logger->info("[Donate/API] Checking card status - RequestID: $requestId");
-		
+
 		// Debug logging - API status check request
 		if (isset($plugin->debugLogger)) {
 			$debugData = $data;
 			$debugData["sign"] = substr($data["sign"], 0, 8) . "...";
-			
+
 			$plugin->debugLogger->logApi("STATUS_REQUEST", $debugData);
 		}
 
@@ -159,7 +159,7 @@ final class TrumTheAPI {
 		if ($result === null) {
 			// Log the connection failure
 			$plugin->logger->error("[Donate/API] Failed to connect to TrumThe API for status check - RequestID: $requestId");
-			
+
 			// Debug logging - API request failed
 			if (isset($plugin->debugLogger)) {
 				$plugin->debugLogger->logApi("STATUS_FAILED", [], ["error" => "Connection failed"]);
@@ -171,19 +171,19 @@ final class TrumTheAPI {
 		if (!is_array($responseData)) {
 			// Log the response parse error
 			$plugin->logger->error("[Donate/API] Failed to parse TrumThe API response for status check - RequestID: $requestId, Raw: " . substr($result->getBody(), 0, 100));
-			
+
 			// Debug logging - API response parse error
 			if (isset($plugin->debugLogger)) {
 				$plugin->debugLogger->logApi("STATUS_PARSE_ERROR", [], ["raw" => substr($result->getBody(), 0, 100)]);
 			}
 			return null;
 		}
-		
+
 		// Log the API response
 		$status = $responseData['status'] ?? 'unknown';
 		$message = $responseData['message'] ?? 'no message';
 		$plugin->logger->info("[Donate/API] Received card status response - RequestID: $requestId, Status: $status, Message: $message");
-		
+
 		// Debug logging - API status response
 		if (isset($plugin->debugLogger)) {
 			$plugin->debugLogger->logApi("STATUS_RESPONSE", [], $responseData);
