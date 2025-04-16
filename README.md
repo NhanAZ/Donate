@@ -1,6 +1,27 @@
-# Donate
+# Donate Plugin
 
-Plugin nạp thẻ cho máy chủ PocketMine-MP 5.x sử dụng API của [trumthe.vn](https://trumthe.vn/).
+Plugin nạp thẻ cho máy chủ PocketMine-MP.
+
+## Tuyên bố từ chối trách nhiệm
+
+**QUAN TRỌNG: Từ chối trách nhiệm**
+
+Đây là một dự án cá nhân không được phát triển tích cực. Plugin này được cung cấp "nguyên trạng" mà không có bất kỳ bảo đảm nào, dù rõ ràng hay ngụ ý. Tôi không chịu trách nhiệm và không tham gia vào việc phát triển, bảo trì hoặc hỗ trợ plugin này.
+
+- Không có phiên bản chính thức nào được phát hành (không có file .phar)
+- Repository này tồn tại chủ yếu cho mục đích tham khảo, học tập và làm portfolio
+- Việc sử dụng plugin này trong môi trường thực tế hoàn toàn thuộc trách nhiệm của người dùng
+- Tôi không đảm bảo rằng plugin hoạt động đúng cách hoặc không có lỗi
+- Tôi không chịu trách nhiệm về bất kỳ thiệt hại nào có thể xảy ra do sử dụng plugin này
+- Plugin này không liên kết chính thức với bất kỳ dịch vụ thanh toán nào
+- Mã nguồn được cung cấp cho mục đích tham khảo và có thể chứa lỗi
+- Đây là dự án mã nguồn mở, mọi người có thể tự do đóng góp hoặc chỉnh sửa thông qua PR và Issue, nhưng không đảm bảo rằng các đóng góp sẽ được xem xét
+
+### Giấy phép
+
+Plugin này được phát hành dưới giấy phép [MIT License](LICENSE). Bạn được phép sử dụng, sao chép, sửa đổi, hợp nhất, xuất bản, phân phối, cấp phép lại và/hoặc bán các bản sao của phần mềm, nhưng phải ghi nhận tác giả gốc và bao gồm thông báo bản quyền cùng với giấy phép này trong tất cả các bản sao hoặc phần quan trọng của phần mềm.
+
+Sử dụng plugin này đồng nghĩa với việc bạn chấp nhận các điều khoản trên.
 
 ## ✨ Tính năng
 
@@ -16,10 +37,13 @@ Plugin nạp thẻ cho máy chủ PocketMine-MP 5.x sử dụng API của [trumt
 
 ## 📥 Cài đặt
 
-1. Tải file `.phar` từ [Releases](https://github.com/NhanAZ/Donate/releases)
-2. Đặt vào thư mục `plugins` của server PocketMine-MP
-3. Khởi động lại server
-4. Cấu hình file `config.yml` trong thư mục `plugins/Donate`
+1. Clone repository này: `git clone https://github.com/NhanAZ/Donate.git`
+2. Copy thư mục `Donate` vào thư mục `plugins` của server PocketMine-MP
+3. Cài đặt dependency [pmforms](https://github.com/dktapps/pmforms)
+4. Khởi động lại server
+5. Cấu hình file `config.yml` trong thư mục `plugins/Donate`
+
+Lưu ý: Plugin này không có file `.phar`, bạn cần sử dụng trực tiếp từ mã nguồn.
 
 ## ⚙️ Cấu hình
 
@@ -142,4 +166,4 @@ Plugin này được phát hành dưới giấy phép [MIT License](LICENSE).
 
 ## 🤝 Hỗ Trợ
 
-Nếu bạn gặp vấn đề hoặc có câu hỏi, vui lòng tạo [Issue](https://github.com/NhanAZ/Donate/issues) trên GitHub hoặc liên hệ với tác giả qua Discord. 
+Plugin này hiện không được bảo trì tích cực. Mặc dù bạn có thể tạo [Issue](https://github.com/NhanAZ/Donate/issues) trên GitHub, nhưng không đảm bảo sẽ có phản hồi hoặc hỗ trợ. Nếu bạn muốn sử dụng plugin này, khuyến khích bạn fork dự án và tự duy trì phiên bản của riêng mình. 
