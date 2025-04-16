@@ -122,3 +122,5 @@
 2025-04-16 [11:12:02.683] [Server thread/INFO]: [2025-04-16 11:12:02] [Donate/DEBUG:GENERAL] Plugin enabled successfully
 [2025-04-16 11:12:02] [Donate/DEBUG:GENERAL] Plugin enabled successfully
 2025-04-16 [11:12:03.999] [Server thread/INFO]: [Donate/Command] Console executed /donate
+2025-04-16 [11:12:37.018] [Server thread/INFO]: [2025-04-16 11:12:37] [Donate/DEBUG:GENERAL] Plugin disabled
+[2025-04-16 11:12:37] [Donate/DEBUG:GENERAL] Plugin disabled

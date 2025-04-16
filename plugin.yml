@@ -5,7 +5,7 @@ main: Donate\Donate
 src-namespace-prefix: Donate
 api: 5.0.0
 extensions: [json]
-authors: [hachkingtohach1, TungstenVN, NhanAZ]
+authors: [NhanAZ, hachkingtohach1, TungstenVN]
 description: Plugin nạp thẻ cho máy chủ PMMP
 website: https://github.com/NhanAZ/Donate
 
