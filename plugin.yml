@@ -8,6 +8,8 @@ extensions: [json]
 authors: [NhanAZ, hachkingtohach1, TungstenVN]
 description: Plugin nạp thẻ cho máy chủ PMMP
 website: https://github.com/NhanAZ/Donate
+php: [8.3.0]
+softdepend: [pmforms]
 
 commands:
   donate:

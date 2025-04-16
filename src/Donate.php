@@ -37,6 +37,20 @@ class Donate extends PluginBase {
 	}
 
 	protected function onEnable(): void {
+		// Check PHP version
+		if (version_compare(PHP_VERSION, '8.3.0', '<')) {
+			$this->getLogger()->error("Plugin require PHP 8.3.0 or higher. Current version: " . PHP_VERSION);
+			$this->getServer()->getPluginManager()->disablePlugin($this);
+			return;
+		}
+
+		// Check pmforms dependency
+		if (!class_exists('dktapps\pmforms\CustomForm')) {
+			$this->getLogger()->error("Thiếu dependency: pmforms không được tìm thấy! Hãy cài đặt virion hoặc plugin pmforms.");
+			$this->getServer()->getPluginManager()->disablePlugin($this);
+			return;
+		}
+
 		// Initialize configuration
 		$this->saveDefaultConfig();
 		$this->donateData = new Config($this->getDataFolder() . "donateData.yml", Config::YAML);

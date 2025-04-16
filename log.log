@@ -124,3 +124,30 @@
 2025-04-16 [11:12:03.999] [Server thread/INFO]: [Donate/Command] Console executed /donate
 2025-04-16 [11:12:37.018] [Server thread/INFO]: [2025-04-16 11:12:37] [Donate/DEBUG:GENERAL] Plugin disabled
 [2025-04-16 11:12:37] [Donate/DEBUG:GENERAL] Plugin disabled
+2025-04-16 [11:34:41.557] [Server thread/INFO]: [2025-04-16 11:34:41] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+[2025-04-16 11:34:41] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+2025-04-16 [11:35:29.386] [Server thread/INFO]: [Donate/Command] Console executed /donate
+2025-04-16 [11:35:31.359] [Server thread/INFO]: [Donate/Command] Console executed /donate a
+2025-04-16 [11:35:44.258] [Server thread/INFO]: [Donate/Command] Console executed /donate NhanAZVIETTE
+2025-04-16 [11:35:45.014] [Server thread/INFO]: [Donate/Command] Console executed /donate NhanAZ VIETTEL 123456789012 987654321098 50000
+2025-04-16 [11:35:45.019] [Server thread/INFO]: [Donate/Console] Processing card payment - Player: NhanAZ, Telco: VIETTEL, RequestID: console_67ff961104c197.76336869, Amount: 50000
+2025-04-16 [11:35:45.023] [Server thread/INFO]: [Donate/Sample] Added sample payment - RequestID: console_67ff961104c197.76336869, Player: NhanAZ, Amount: 50000
+2025-04-16 [11:36:12.819] [Server thread/INFO]: [Donate/Payment] Checking 1 pending payments
+2025-04-16 [11:36:12.819] [Server thread/INFO]: [2025-04-16 11:36:12] [Donate/DEBUG:PAYMENT] Checking 1 pending payments
+[2025-04-16 11:36:12] [Donate/DEBUG:PAYMENT] Checking 1 pending payments
+2025-04-16 [11:36:22.415] [Server thread/INFO]: [Donate/Command] Console executed /donatedebug
+2025-04-16 [11:36:42.816] [Server thread/INFO]: [Donate/Payment] Checking 1 pending payments
+2025-04-16 [11:36:42.817] [Server thread/INFO]: [2025-04-16 11:36:42] [Donate/DEBUG:PAYMENT] Checking 1 pending payments
+[2025-04-16 11:36:42] [Donate/DEBUG:PAYMENT] Checking 1 pending payments
+2025-04-16 [11:36:42.819] [Server thread/INFO]: [2025-04-16 11:36:42] [Donate/DEBUG:PAYMENT] Payment CHECKING - Player: NhanAZ, RequestID: console_67ff961104c197.76336869, Details: age: 57s
+[2025-04-16 11:36:42] [Donate/DEBUG:PAYMENT] Payment CHECKING - Player: NhanAZ, RequestID: console_67ff961104c197.76336869, Details: age: 57s
+2025-04-16 [11:36:42.826] [Server thread/INFO]: [Donate/API] Checking card status - RequestID: console_67ff961104c197.76336869
+2025-04-16 [11:36:42.827] [Server thread/INFO]: [2025-04-16 11:36:42] [Donate/DEBUG:API] API STATUS_REQUEST - Request: {"request_id":"console_67ff961104c197.76336869","partner_id":"71908401054","sign":"97a4f97e...","command":"check"}
+[2025-04-16 11:36:42] [Donate/DEBUG:API] API STATUS_REQUEST - Request: {"request_id":"console_67ff961104c197.76336869","partner_id":"71908401054","sign":"97a4f97e...","command":"check"}
+2025-04-16 [11:36:44.062] [Server thread/INFO]: [Donate/API] Received card status response - RequestID: console_67ff961104c197.76336869, Status: 102, Message: INPUT_DATA_INCORRECT
+2025-04-16 [11:36:44.062] [Server thread/INFO]: [2025-04-16 11:36:44] [Donate/DEBUG:API] API STATUS_RESPONSE - Response: {"status":102,"message":"INPUT_DATA_INCORRECT"}
+[2025-04-16 11:36:44] [Donate/DEBUG:API] API STATUS_RESPONSE - Response: {"status":102,"message":"INPUT_DATA_INCORRECT"}
+2025-04-16 [11:36:44.065] [Server thread/INFO]: [Donate/Payment] Payment failed - Player: NhanAZ, RequestID: console_67ff961104c197.76336869, Reason: INPUT_DATA_INCORRECT
+2025-04-16 [11:36:44.066] [Server thread/INFO]: [2025-04-16 11:36:44] [Donate/DEBUG:PAYMENT] Payment FAILED - Player: NhanAZ, RequestID: console_67ff961104c197.76336869, Details: status: 102, message: INPUT_DATA_INCORRECT
+[2025-04-16 11:36:44] [Donate/DEBUG:PAYMENT] Payment FAILED - Player: NhanAZ, RequestID: console_67ff961104c197.76336869, Details: status: 102, message: INPUT_DATA_INCORRECT
+2025-04-16 [11:36:58.378] [Server thread/INFO]: [Donate/Command] Console executed /donate
