@@ -127,6 +127,11 @@ EconomyAPI::getInstance()->addMoney($playerName, $bonusAmount);
 - [hachkingtohach1](https://github.com/hachkingtohach1)
 - [TungstenVN](https://github.com/TungstenVN)
 
+## 🧪 Testing & Triển Khai
+
+- **Testing**: Cảm ơn Thanh Huy (Miheisu) đã giúp kiểm thử cho plugin này
+- **Server sử dụng**: Bạn có thể trải nghiệm plugin này trên server **miheisu.io.vn** (cổng 19132)
+
 ## 🤖 AI Assistance
 
 Plugin này đã được cải thiện với sự hỗ trợ của [Claude](https://www.anthropic.com/claude), một AI assistant từ Anthropic, giúp tối ưu hóa mã nguồn và nâng cao UX.
