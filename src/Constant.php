@@ -9,7 +9,7 @@ namespace Donate;
  */
 class Constant {
 	/** Plugin prefix for messages */
-	public const PREFIX = "[Nạp Thẻ] ";
+	public const PREFIX = "§f§l[§6Nạp Thẻ§f] ";
 
 	public const PARTNER_ID = "";
 

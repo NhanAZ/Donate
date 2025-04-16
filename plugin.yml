@@ -6,36 +6,39 @@ src-namespace-prefix: Donate
 api: 5.0.0
 extensions: [json]
 authors: [NhanAZ, hachkingtohach1, TungstenVN]
-description: Plugin nạp thẻ cho máy chủ PMMP
+description: "Plugin nạp thẻ cho máy chủ PocketMine-MP sử dụng API của trumthe.vn"
 website: https://github.com/NhanAZ/Donate
 php: [8.3.0]
 softdepend: [pmforms]
 
 commands:
   donate:
-    description: "Mở giao diện nạp thẻ"
+    description: "§eMở giao diện nạp thẻ"
     permission: donate.command.donate
-    usage: "/donate"
+    usage: "§7• §f/donate §7- Mở giao diện nạp thẻ cho người chơi§r\n§7• §f/donate <tên> <telco> <mã> <serial> <mệnh giá> §7- Nạp thẻ từ console§r"
+    aliases: [napthe, card, nap]
   topdonate:
-    description: "Xem bảng xếp hạng người nạp thẻ"
+    description: "§eXem bảng xếp hạng người nạp thẻ"
     permission: donate.command.topdonate
-    usage: "/topdonate [trang]"
+    usage: "§7• §f/topdonate [trang] §7- Xem bảng xếp hạng người nạp thẻ§r"
+    aliases: [topnap, topcard, bangxephang, bxh]
   donatedebug:
-    description: "Kiểm tra thông tin debug của plugin nạp thẻ"
+    description: "§eKiểm tra và quản lý thông tin debug"
     permission: donate.command.debug
-    usage: "/donatedebug [pending|status <requestId>]"
+    usage: "§7• §f/donatedebug §7- Xem danh sách lệnh debug§r\n§7• §f/donatedebug pending §7- Xem giao dịch đang xử lý§r\n§7• §f/donatedebug status <requestId> §7- Kiểm tra giao dịch§r"
+    aliases: [ddebug, ddbg, napdebug]
 
 permissions:
   donate.command.donate:
     default: true
-    description: "Cho phép sử dụng lệnh /donate"
+    description: "§7Cho phép sử dụng lệnh §f/donate"
   donate.command.topdonate:
     default: true
-    description: "Cho phép sử dụng lệnh /topdonate"
+    description: "§7Cho phép sử dụng lệnh §f/topdonate"
   donate.command.debug:
     default: op
-    description: "Cho phép sử dụng lệnh /donatedebug"
+    description: "§7Cho phép sử dụng lệnh §f/donatedebug §7(dành cho admin)"
   donate.admin:
     default: op
-    description: "Cấp quyền admin cho plugin nạp thẻ"
+    description: "§7Cấp quyền admin cho plugin nạp thẻ"
 ...
