@@ -14,15 +14,56 @@ use pocketmine\scheduler\ClosureTask;
 
 class FormManager {
 	private Donate $plugin;
+	
+	// Add player cooldown tracking
+	/** @var array<string, int> Last form submission time by player */
+	public array $lastFormSubmission = [];
+	
+	// Form cooldown setting
+	/** @var int Cooldown between form submissions in seconds */
+	private int $formCooldown = 5; // Default: 5 seconds cooldown
+	
+	/**
+	 * Get the form submission cooldown time in seconds
+	 */
+	public function getFormCooldown(): int {
+		return $this->formCooldown;
+	}
 
 	public function __construct(Donate $plugin) {
 		$this->plugin = $plugin;
+		
+		// Load form cooldown from config
+		$config = $plugin->getConfig();
+		$configValue = $config->getNested("anti_spam.form_cooldown", 5);
+		$this->formCooldown = max(1, filter_var($configValue, FILTER_VALIDATE_INT, ["options" => ["default" => 5]]));
+		
+		$plugin->debugLogger->log("Form cooldown set to {$this->formCooldown} seconds", "form");
 	}
 
 	/**
 	 * Send the donate form to a player
 	 */
 	public function sendDonateForm(Player $player): void {
+		// Check for cooldown to prevent spam
+		$playerName = $player->getName();
+		$currentTime = time();
+		
+		if (isset($this->lastFormSubmission[$playerName])) {
+			$lastTime = $this->lastFormSubmission[$playerName];
+			$timeDiff = $currentTime - $lastTime;
+			
+			if ($timeDiff < $this->formCooldown) {
+				$remainingTime = $this->formCooldown - $timeDiff;
+				$player->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Vui lòng đợi {$remainingTime} giây trước khi mở form lại."));
+				$this->plugin->debugLogger->log("Form spam prevented - Player: {$playerName} tried to open form too quickly", "form");
+				return;
+			}
+		}
+		
+		// Update the last form time
+		$this->lastFormSubmission[$playerName] = $currentTime;
+		
 		$this->plugin->logger->info("[Donate/Form] Sending donate form to player: " . $player->getName());
 		$form = $this->createDonateForm();
 		$player->sendForm($form);
@@ -32,6 +73,25 @@ class FormManager {
 	 * Send the top donate form to a player
 	 */
 	public function sendTopDonateForm(Player $player, int $page = 1): void {
+		// Check for cooldown to prevent spam
+		$playerName = $player->getName();
+		$currentTime = time();
+		
+		if (isset($this->lastFormSubmission[$playerName])) {
+			$lastTime = $this->lastFormSubmission[$playerName];
+			$timeDiff = $currentTime - $lastTime;
+			
+			if ($timeDiff < $this->formCooldown) {
+				$remainingTime = $this->formCooldown - $timeDiff;
+				$player->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Vui lòng đợi {$remainingTime} giây trước khi mở form lại."));
+				$this->plugin->debugLogger->log("TopDonate form spam prevented - Player: {$playerName} tried to open form too quickly", "form");
+				return;
+			}
+		}
+		
+		// Update the last form time
+		$this->lastFormSubmission[$playerName] = $currentTime;
+		
 		$this->plugin->logger->info("[Donate/Form] Sending top donate form to player: " . $player->getName() . ", page: " . $page);
 		$this->plugin->debugLogger->log("Sending top donate form to player: " . $player->getName() . ", page: " . $page, "form");
 		$form = $this->createTopDonateForm($page);
@@ -85,6 +145,27 @@ class FormManager {
 					$this->plugin->logger->info("[Donate/Form] Player " . $player->getName() . " closed the donate form");
 					return;
 				}
+				
+				// Apply submission cooldown to prevent API spam
+				$playerName = $player->getName();
+				$currentTime = time();
+				$formManager = $this->plugin->getFormManager();
+				
+				// Check if the player is attempting to submit forms too quickly
+				if (isset($formManager->lastFormSubmission[$playerName])) {
+					$lastTime = $formManager->lastFormSubmission[$playerName];
+					$timeDiff = $currentTime - $lastTime;
+					
+					if ($timeDiff < $formManager->getFormCooldown()) {
+						$remainingTime = $formManager->getFormCooldown() - $timeDiff;
+						$player->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Gửi quá nhanh! Vui lòng đợi {$remainingTime} giây trước khi gửi lại."));
+						$this->plugin->debugLogger->log("Form submission throttled - Player: {$playerName} tried to submit too quickly", "form");
+						return;
+					}
+				}
+				
+				// Update the last submission time
+				$formManager->lastFormSubmission[$playerName] = $currentTime;
 
 				if (!is_array($data)) {
 					$player->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Có lỗi xảy ra khi xử lý biểu mẫu!"));

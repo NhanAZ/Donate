@@ -16,6 +16,61 @@ use pocketmine\utils\InternetRequestResult;
  */
 final class TrumTheAPI {
 
+	/** @var array<string, int> Last API request time by IP */
+	private static array $lastApiRequests = [];
+	
+	/** @var int Cooldown between API requests in seconds */
+	private static int $apiCooldown = 2; // 2 seconds cooldown
+	
+	/**
+	 * Set the API request cooldown
+	 * 
+	 * @param int $seconds Number of seconds between API requests
+	 */
+	public static function setApiCooldown(int $seconds): void {
+		self::$apiCooldown = max(1, $seconds); // Minimum 1 second
+	}
+	
+	/**
+	 * Get the current API cooldown setting
+	 */
+	public static function getApiCooldown(): int {
+		return self::$apiCooldown;
+	}
+	
+	/**
+	 * Check if an API request can be made
+	 * 
+	 * @param string $requestType Type of request (for logging)
+	 * @return bool True if request can proceed, false if throttled
+	 */
+	private static function canMakeApiRequest(string $requestType): bool {
+		$plugin = Donate::getInstance();
+		$server = $plugin->getServer();
+		$serverIp = $server->getIp();
+		$currentTime = time();
+		
+		// Use server IP as the key for tracking
+		$key = $serverIp . '_' . $requestType;
+		
+		if (isset(self::$lastApiRequests[$key])) {
+			$lastTime = self::$lastApiRequests[$key];
+			$timeDiff = $currentTime - $lastTime;
+			
+			if ($timeDiff < self::$apiCooldown) {
+				$plugin->logger->warning("[Donate/API] API request throttled - Type: $requestType - Too many requests");
+				if (isset($plugin->debugLogger)) {
+					$plugin->debugLogger->log("API request throttled ($requestType) - Needs to wait " . (self::$apiCooldown - $timeDiff) . " more seconds", "api");
+				}
+				return false;
+			}
+		}
+		
+		// Update last request time
+		self::$lastApiRequests[$key] = $currentTime;
+		return true;
+	}
+
 	/**
 	 * Submit a card charge request to the API
 	 * 
@@ -38,6 +93,15 @@ final class TrumTheAPI {
 		string $requestId
 	): ?ChargeResponse {
 		$plugin = Donate::getInstance();
+		
+		// Check rate limiting
+		if (!self::canMakeApiRequest('charge')) {
+			return new ChargeResponse(
+				-1,
+				"Too many API requests. Please try again in a few seconds."
+			);
+		}
+		
 		$config = $plugin->getConfig();
 
 		// Safely get partner ID and key
@@ -140,6 +204,15 @@ final class TrumTheAPI {
 	 */
 	public static function checkCardStatus(string $requestId, ?array $cardInfo = null): ?ChargeStatusResponse {
 		$plugin = Donate::getInstance();
+		
+		// Check rate limiting
+		if (!self::canMakeApiRequest('status')) {
+			return new ChargeStatusResponse(
+				-1,
+				"Too many API requests. Please try again in a few seconds."
+			);
+		}
+		
 		$config = $plugin->getConfig();
 
 		// Safely get partner ID and key

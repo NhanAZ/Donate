@@ -53,6 +53,26 @@ class Donate extends PluginBase {
 
 		// Initialize configuration
 		$this->saveDefaultConfig();
+		
+		// Add default anti-spam settings if they don't exist
+		$config = $this->getConfig();
+		if (!$config->exists("anti_spam")) {
+			$config->set("anti_spam", [
+				"form_cooldown" => 5,  // Seconds between form submissions
+				"api_cooldown" => 2    // Seconds between API requests
+			]);
+			$config->save();
+		}
+		
+		// Apply anti-spam settings
+		$formCooldownValue = $config->getNested("anti_spam.form_cooldown", 5);
+		$apiCooldownValue = $config->getNested("anti_spam.api_cooldown", 2);
+		$formCooldown = filter_var($formCooldownValue, FILTER_VALIDATE_INT, ["options" => ["default" => 5]]);
+		$apiCooldown = filter_var($apiCooldownValue, FILTER_VALIDATE_INT, ["options" => ["default" => 2]]);
+		
+		// Configure API cooldown
+		\Donate\api\TrumTheAPI::setApiCooldown($apiCooldown);
+		
 		$this->donateData = new Config($this->getDataFolder() . "donateData.yml", Config::YAML);
 
 		$this->logger = new MainLogger(
