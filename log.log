@@ -160,3 +160,7 @@
 2025-04-16 [13:08:10.697] [Server thread/INFO]: [Donate/Sample] Added sample payment - RequestID: sample-67ffabbaa95d1, Player: Console, Amount: 100000
 2025-04-16 [13:08:16.978] [Server thread/INFO]: [2025-04-16 13:08:16] [Donate/DEBUG:GENERAL] Plugin disabled
 [2025-04-16 13:08:16] [Donate/DEBUG:GENERAL] Plugin disabled
+2025-04-16 [14:22:06.986] [Server thread/INFO]: [2025-04-16 14:22:06] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+[2025-04-16 14:22:06] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+2025-04-16 [14:23:28.269] [Server thread/INFO]: [2025-04-16 14:23:28] [Donate/DEBUG:GENERAL] Plugin disabled
+[2025-04-16 14:23:28] [Donate/DEBUG:GENERAL] Plugin disabled

@@ -16,17 +16,14 @@ commands:
     description: "§eMở giao diện nạp thẻ"
     permission: donate.command.donate
     usage: "§7• §f/donate §7- Mở giao diện nạp thẻ cho người chơi§r\n§7• §f/donate <tên> <telco> <mã> <serial> <mệnh giá> §7- Nạp thẻ từ console§r"
-    aliases: [napthe, card, nap]
   topdonate:
     description: "§eXem bảng xếp hạng người nạp thẻ"
     permission: donate.command.topdonate
     usage: "§7• §f/topdonate [trang] §7- Xem bảng xếp hạng người nạp thẻ§r"
-    aliases: [topnap, topcard, bangxephang, bxh]
   donatedebug:
     description: "§eKiểm tra và quản lý thông tin debug"
     permission: donate.command.debug
     usage: "§7• §f/donatedebug §7- Xem danh sách lệnh debug§r\n§7• §f/donatedebug pending §7- Xem giao dịch đang xử lý§r\n§7• §f/donatedebug status <requestId> §7- Kiểm tra giao dịch§r"
-    aliases: [ddebug, ddbg, napdebug]
 
 permissions:
   donate.command.donate:
