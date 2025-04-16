@@ -52,3 +52,52 @@
 2025-04-16 [10:37:46.391] [Server thread/INFO]: [Donate/TopDonate] Player NhanAZ requested top donators page: 1
 2025-04-16 [10:37:53.506] [Server thread/INFO]: [2025-04-16 10:37:53] [Donate/DEBUG:GENERAL] Plugin disabled
 [2025-04-16 10:37:53] [Donate/DEBUG:GENERAL] Plugin disabled
+2025-04-16 [10:43:35.808] [Server thread/INFO]: [2025-04-16 10:43:35] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+[2025-04-16 10:43:35] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+2025-04-16 [10:44:10.729] [Server thread/INFO]: [Donate/Command] NhanAZ executed /donate
+2025-04-16 [10:44:10.730] [Server thread/INFO]: [Donate/Form] Opening donate form for player: NhanAZ
+2025-04-16 [10:44:10.730] [Server thread/INFO]: [Donate/Form] Sending donate form to player: NhanAZ
+2025-04-16 [10:44:13.762] [Server thread/INFO]: [Donate/Form] Player NhanAZ closed the donate form
+2025-04-16 [10:44:18.839] [Server thread/INFO]: [Donate/Command] NhanAZ executed /topdonate
+2025-04-16 [10:44:18.840] [Server thread/INFO]: [Donate/TopDonate] Player NhanAZ requested top donators page: 1
+2025-04-16 [10:44:18.841] [Server thread/INFO]: [Donate/Form] Sending top donate form to player: NhanAZ, page: 1
+2025-04-16 [10:44:32.347] [Server thread/INFO]: [Donate/Command] NhanAZ executed /topdonate
+2025-04-16 [10:44:32.348] [Server thread/INFO]: [Donate/TopDonate] Player NhanAZ requested top donators page: 1
+2025-04-16 [10:44:32.348] [Server thread/INFO]: [Donate/Form] Sending top donate form to player: NhanAZ, page: 1
+2025-04-16 [10:44:37.119] [Server thread/INFO]: [Donate/Form] Sending top donate form to player: NhanAZ, page: 2
+2025-04-16 [10:44:44.118] [Server thread/INFO]: [2025-04-16 10:44:44] [Donate/DEBUG:GENERAL] Plugin disabled
+[2025-04-16 10:44:44] [Donate/DEBUG:GENERAL] Plugin disabled
+2025-04-16 [10:51:12.981] [Server thread/INFO]: [2025-04-16 10:51:12] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+[2025-04-16 10:51:12] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+2025-04-16 [10:51:32.927] [Server thread/INFO]: [Donate/Command] NhanAZ executed /donate
+2025-04-16 [10:51:32.928] [Server thread/INFO]: [Donate/Form] Opening donate form for player: NhanAZ
+2025-04-16 [10:51:32.928] [Server thread/INFO]: [Donate/Form] Sending donate form to player: NhanAZ
+2025-04-16 [10:51:35.514] [Server thread/INFO]: [Donate/Form] Player NhanAZ submitted form with empty serial or code
+2025-04-16 [10:51:35.515] [Server thread/INFO]: [2025-04-16 10:51:35] [Donate/DEBUG:PAYMENT] Player NhanAZ submitted form with empty serial or code
+[2025-04-16 10:51:35] [Donate/DEBUG:PAYMENT] Player NhanAZ submitted form with empty serial or code
+2025-04-16 [10:51:41.261] [Server thread/INFO]: [Donate/Command] NhanAZ executed /topdonate
+2025-04-16 [10:51:41.261] [Server thread/INFO]: [Donate/TopDonate] Player NhanAZ requested top donators page: 1
+2025-04-16 [10:51:41.261] [Server thread/INFO]: [Donate/Form] Sending top donate form to player: NhanAZ, page: 1
+2025-04-16 [10:51:43.946] [Server thread/INFO]: [Donate/Form] Sending top donate form to player: NhanAZ, page: 1
+2025-04-16 [10:51:51.545] [Server thread/INFO]: [Donate/Form] Sending top donate form to player: NhanAZ, page: 1
+2025-04-16 [10:51:54.092] [Server thread/INFO]: [Donate/Form] Sending top donate form to player: NhanAZ, page: 1
+2025-04-16 [10:51:55.888] [Server thread/INFO]: [Donate/Form] Sending top donate form to player: NhanAZ, page: 1
+2025-04-16 [10:51:57.546] [Server thread/INFO]: [Donate/Form] Sending top donate form to player: NhanAZ, page: 1
+2025-04-16 [10:51:59.269] [Server thread/INFO]: [Donate/Form] Sending top donate form to player: NhanAZ, page: 1
+2025-04-16 [10:55:34.589] [Server thread/INFO]: [Donate/Command] NhanAZ executed /topdonate
+2025-04-16 [10:55:34.589] [Server thread/INFO]: [Donate/TopDonate] Player NhanAZ requested top donators page: 1
+2025-04-16 [10:55:34.589] [Server thread/INFO]: [Donate/Form] Sending top donate form to player: NhanAZ, page: 1
+2025-04-16 [10:55:47.350] [Server thread/INFO]: [2025-04-16 10:55:47] [Donate/DEBUG:GENERAL] Plugin disabled
+[2025-04-16 10:55:47] [Donate/DEBUG:GENERAL] Plugin disabled
+2025-04-16 [10:55:52.885] [Server thread/INFO]: [2025-04-16 10:55:52] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+[2025-04-16 10:55:52] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+2025-04-16 [10:56:25.470] [Server thread/INFO]: [Donate/Command] NhanAZ executed /topdonate
+2025-04-16 [10:56:25.470] [Server thread/INFO]: [Donate/TopDonate] Player NhanAZ requested top donators page: 1
+2025-04-16 [10:56:25.471] [Server thread/INFO]: [Donate/Form] Sending top donate form to player: NhanAZ, page: 1
+2025-04-16 [10:56:29.232] [Server thread/INFO]: [Donate/Form] Sending top donate form to player: NhanAZ, page: 1
+2025-04-16 [10:56:35.080] [Server thread/INFO]: [Donate/Form] Sending top donate form to player: NhanAZ, page: 2
+2025-04-16 [10:56:38.529] [Server thread/INFO]: [Donate/Form] Sending top donate form to player: NhanAZ, page: 2
+2025-04-16 [11:00:41.567] [Server thread/INFO]: [Donate/Command] NhanAZ executed /donate
+2025-04-16 [11:00:41.568] [Server thread/INFO]: [Donate/Form] Opening donate form for player: NhanAZ
+2025-04-16 [11:00:41.568] [Server thread/INFO]: [Donate/Form] Sending donate form to player: NhanAZ
+2025-04-16 [11:00:43.948] [Server thread/INFO]: [Donate/Form] Player NhanAZ closed the donate form

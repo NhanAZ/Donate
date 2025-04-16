@@ -86,15 +86,18 @@ class Donate extends PluginBase {
 		$senderName = $sender instanceof Player ? $sender->getName() : "Console";
 		$argsString = !empty($args) ? " " . implode(" ", $args) : "";
 		$this->logger->info("[Donate/Command] $senderName executed /$commandName$argsString");
+		$this->debugLogger->log("Command executed: $senderName used /$commandName$argsString", "command");
 
 		switch ($commandName) {
 			case "donate":
 				if (!$sender instanceof Player) {
+					$this->debugLogger->log("Donate command rejected - not a player: $senderName", "command");
 					$sender->sendMessage(Constant::PREFIX . "Vui lòng sử dụng lệnh này trong trò chơi!");
 					return true;
 				}
 
 				$this->logger->info("[Donate/Form] Opening donate form for player: " . $sender->getName());
+				$this->debugLogger->log("Opening donate form for player: " . $sender->getName(), "command");
 				$this->formManager->sendDonateForm($sender);
 				return true;
 
@@ -105,17 +108,28 @@ class Donate extends PluginBase {
 				}
 
 				$this->logger->info("[Donate/TopDonate] Player $senderName requested top donators page: $page");
-				$this->showTopDonators($sender, $page);
+				$this->debugLogger->log("TopDonate command: $senderName requested page $page", "command");
+				
+				// Nếu là player thì hiển thị form, nếu là console thì hiển thị text
+				if ($sender instanceof Player) {
+					$this->debugLogger->log("Sending TopDonate form to player: " . $sender->getName(), "command");
+					$this->formManager->sendTopDonateForm($sender, $page);
+				} else {
+					$this->debugLogger->log("Showing TopDonate text to console", "command");
+					$this->showTopDonators($sender, $page);
+				}
 				return true;
 				
 			case "donatedebug":
 				if (!$sender->hasPermission("donate.command.debug")) {
+					$this->debugLogger->log("DonateDebug command rejected - no permission: $senderName", "command");
 					$sender->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Bạn không có quyền sử dụng lệnh này!"));
 					return true;
 				}
 				
 				// Handle debug command
 				$subcommand = $args[0] ?? "help";
+				$this->debugLogger->log("DonateDebug subcommand: $subcommand by $senderName", "command");
 				
 				switch ($subcommand) {
 					case "pending":
@@ -625,6 +639,8 @@ class Donate extends PluginBase {
 	 * Thêm dữ liệu mẫu để test
 	 */
 	private function addSampleData(CommandSender $sender): void {
+		$this->debugLogger->log("Adding sample data requested by: " . ($sender instanceof Player ? $sender->getName() : "Console"), "sample");
+		
 		// Thêm dữ liệu mẫu cho donateData.yml để test lệnh /topdonate
 		$sampleData = [
 			"NhanAZ" => 500000,
@@ -651,27 +667,34 @@ class Donate extends PluginBase {
 		
 		// Hiện tại trong donateData
 		$currentData = $this->donateData->getAll();
+		$this->debugLogger->log("Current data has " . count($currentData) . " entries", "sample");
 		
 		// Hợp nhất dữ liệu
 		if (!empty($currentData)) {
 			$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Đã tìm thấy dữ liệu hiện có, đang hợp nhất..."));
 			
 			// Chỉ thêm vào người chơi mới
+			$newCount = 0;
 			foreach ($sampleData as $player => $amount) {
 				if (!isset($currentData[$player])) {
 					$currentData[$player] = $amount;
+					$newCount++;
 				}
 			}
+			
+			$this->debugLogger->log("Added $newCount new entries to existing data", "sample");
 			
 			// Lưu lại dữ liệu hợp nhất
 			$this->donateData->setAll($currentData);
 		} else {
 			// Nếu không có dữ liệu, thêm mới hoàn toàn
 			$this->donateData->setAll($sampleData);
+			$this->debugLogger->log("Added all sample data (20 entries) to empty data file", "sample");
 		}
 		
 		// Lưu dữ liệu
 		$this->donateData->save();
+		$this->debugLogger->log("Saved donate data to file", "sample");
 		
 		// Tạo một thanh toán mẫu đang chờ xử lý
 		$requestId = "sample-" . uniqid();
@@ -692,6 +715,7 @@ class Donate extends PluginBase {
 		
 		// Thêm vào danh sách thanh toán đang chờ
 		$this->paymentManager->addSamplePayment($requestId, $payment);
+		$this->debugLogger->log("Added sample payment with ID: $requestId", "sample");
 		
 		$sender->sendMessage(\Donate\utils\MessageTranslator::formatSuccessMessage("Đã thêm dữ liệu mẫu thành công!"));
 		$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("- Đã thêm 20 người chơi với số tiền donate mẫu"));
@@ -703,6 +727,8 @@ class Donate extends PluginBase {
 	 * Thêm giao dịch đang chờ xử lý mẫu
 	 */
 	private function addSamplePendingPayments(CommandSender $sender, int $count): void {
+		$this->debugLogger->log("Adding $count sample pending payments requested by: " . ($sender instanceof Player ? $sender->getName() : "Console"), "sample");
+		
 		$telcos = ["VIETTEL", "MOBIFONE", "VINAPHONE", "VIETNAMOBILE", "ZING"];
 		$amounts = [10000, 20000, 50000, 100000, 200000, 500000];
 		$names = [

@@ -10,6 +10,7 @@ use pocketmine\form\Form;
 use pocketmine\player\Player;
 use pocketmine\utils\Utils;
 use Ramsey\Uuid\Uuid;
+use pocketmine\scheduler\ClosureTask;
 
 class FormManager {
 	private Donate $plugin;
@@ -24,6 +25,16 @@ class FormManager {
 	public function sendDonateForm(Player $player): void {
 		$this->plugin->logger->info("[Donate/Form] Sending donate form to player: " . $player->getName());
 		$form = $this->createDonateForm();
+		$player->sendForm($form);
+	}
+
+	/**
+	 * Send the top donate form to a player
+	 */
+	public function sendTopDonateForm(Player $player, int $page = 1): void {
+		$this->plugin->logger->info("[Donate/Form] Sending top donate form to player: " . $player->getName() . ", page: " . $page);
+		$this->plugin->debugLogger->log("Sending top donate form to player: " . $player->getName() . ", page: " . $page, "form");
+		$form = $this->createTopDonateForm($page);
 		$player->sendForm($form);
 	}
 
@@ -188,6 +199,187 @@ class FormManager {
 						"Card processing failed immediately for {$player->getName()} - Reason: {$response->getMessage()}",
 						"payment"
 					);
+				}
+			}
+		};
+	}
+
+	/**
+	 * Create a top donate form
+	 */
+	private function createTopDonateForm(int $page = 1): Form {
+		return new class($this->plugin, $page) implements Form {
+			private Donate $plugin;
+			private int $page;
+
+			public function __construct(Donate $plugin, int $page) {
+				$this->plugin = $plugin;
+				$this->page = $page;
+			}
+
+			/** @return array<string, mixed> */
+			public function jsonSerialize(): array {
+				$donateData = $this->plugin->getDonateData()->getAll();
+				
+				// Log debug for donation data
+				$this->plugin->debugLogger->log("TopDonate form: Loaded " . count($donateData) . " donation records", "form");
+				
+				// Nếu không có dữ liệu
+				if (empty($donateData)) {
+					$this->plugin->debugLogger->log("TopDonate form: No donation data found, showing empty message", "form");
+					return [
+						'type' => 'form',
+						'title' => '§l§f• §8[§6Xếp Hạng Donate§8] §f•',
+						'content' => "§cHiện chưa có một ai nạp thẻ ủng hộ máy chủ...",
+						'buttons' => [
+							['text' => '§l§8« §cĐóng §8»']
+						]
+					];
+				}
+				
+				// Sắp xếp theo thứ tự giảm dần
+				arsort($donateData);
+				
+				$totalPlayers = count($donateData);
+				$itemsPerPage = 10;
+				$maxPage = (int) ceil($totalPlayers / $itemsPerPage);
+				
+				// Xác thực số trang
+				$this->page = max(1, min($this->page, $maxPage));
+				
+				$this->plugin->debugLogger->log("TopDonate form: Page info - Current: " . $this->page . ", Max: " . $maxPage . ", Total Players: " . $totalPlayers, "form");
+				
+				$startIndex = ($this->page - 1) * $itemsPerPage;
+				$i = 0;
+				$topList = [];
+				$serverTotalDonated = 0;
+				
+				foreach ($donateData as $playerName => $amount) {
+					// Tính tổng số tiền donate
+					$amountValue = is_numeric($amount) ? (int)$amount : 0;
+					$serverTotalDonated += $amountValue;
+					
+					// Hiển thị các mục cho trang hiện tại
+					if ($i >= $startIndex && $i < $startIndex + $itemsPerPage) {
+						$rank = $i + 1;
+						$formattedAmount = number_format($amountValue, 0, ",", ".");
+						$topList[] = "§l§f$rank. §e$playerName: §a{$formattedAmount}₫";
+					}
+					
+					$i++;
+				}
+				
+				// Tổng số tiền donate của server
+				$formattedTotal = number_format($serverTotalDonated, 0, ",", ".");
+				
+				// Nội dung form
+				$content = "§l§6• §fBảng xếp hạng donate trang §a" . $this->page . "§f/§a" . $maxPage . " §6•\n\n";
+				$content .= implode("\n", $topList);
+				$content .= "\n\n§l§6• §fTổng số tiền nạp thẻ từ người chơi: §a{$formattedTotal}₫ §6•";
+				
+				// Thêm các nút điều hướng
+				$buttons = [];
+				
+				// Nút trang trước
+				if ($this->page > 1) {
+					$buttons[] = ['text' => '§l§8« §aTrang Trước'];
+				} else {
+					$buttons[] = ['text' => '§l§8« §0Trang Trước', 'tooltip' => 'Đây đã là trang đầu tiên'];
+				}
+				
+				// Nút đóng
+				$buttons[] = ['text' => '§l§8« §cĐóng §8»'];
+				
+				// Nút trang sau
+				if ($this->page < $maxPage) {
+					$buttons[] = ['text' => '§l§aTrang Sau §8»'];
+				} else {
+					$buttons[] = ['text' => '§l§0Trang Sau §8»', 'tooltip' => 'Đây đã là trang cuối cùng'];
+				}
+				
+				return [
+					'type' => 'form',
+					'title' => '§l§f• §8[§6Xếp Hạng Donate§8] §f•',
+					'content' => $content,
+					'buttons' => $buttons
+				];
+			}
+
+			public function handleResponse(Player $player, mixed $data): void {
+				if ($data === null) {
+					$this->plugin->debugLogger->log("TopDonate form: Player " . $player->getName() . " closed the form", "form");
+					return; // Người chơi đóng form
+				}
+				
+				$this->plugin->debugLogger->log("TopDonate form: Player " . $player->getName() . " clicked button index: " . $data, "form");
+				
+				$donateData = $this->plugin->getDonateData()->getAll();
+				if (empty($donateData)) {
+					$this->plugin->debugLogger->log("TopDonate form: No donation data found when handling response", "form");
+					return;
+				}
+				
+				$totalPlayers = count($donateData);
+				$itemsPerPage = 10;
+				$maxPage = (int) ceil($totalPlayers / $itemsPerPage);
+				
+				switch ($data) {
+					case 0: // Trang trước
+						if ($this->page > 1) {
+							$this->plugin->debugLogger->log("TopDonate form: Going to previous page: " . ($this->page - 1), "form");
+							$this->plugin->getFormManager()->sendTopDonateForm($player, $this->page - 1);
+						} else {
+							// Khi ở trang 1 mà bấm "Trang Trước", hiển thị thông báo và mở lại form sau 1.5 giây
+							$this->plugin->debugLogger->log("TopDonate form: Attempted to go to previous page while on first page", "form");
+							
+							// Hiển thị thông báo
+							$player->sendMessage(Constant::PREFIX . "§eĐây là trang đầu tiên rồi.");
+							
+							// Mở lại form sau 1.5 giây
+							$this->plugin->getScheduler()->scheduleDelayedTask(
+								new \pocketmine\scheduler\ClosureTask(
+									function() use ($player): void {
+										if ($player->isOnline()) {
+											$this->plugin->debugLogger->log("TopDonate form: Reopening first page after delay", "form");
+											$this->plugin->getFormManager()->sendTopDonateForm($player, 1);
+										}
+									}
+								), 
+								30 // 30 ticks = 1.5 giây
+							);
+						}
+						break;
+						
+					case 1: // Đóng
+						$this->plugin->debugLogger->log("TopDonate form: Player " . $player->getName() . " clicked Close button", "form");
+						// Không làm gì
+						break;
+						
+					case 2: // Trang sau
+						if ($this->page < $maxPage) {
+							$this->plugin->debugLogger->log("TopDonate form: Going to next page: " . ($this->page + 1), "form");
+							$this->plugin->getFormManager()->sendTopDonateForm($player, $this->page + 1);
+						} else {
+							// Khi ở trang cuối mà bấm "Trang Sau", hiển thị thông báo và mở lại form sau 1.5 giây
+							$this->plugin->debugLogger->log("TopDonate form: Attempted to go to next page while on last page", "form");
+							
+							// Hiển thị thông báo
+							$player->sendMessage(Constant::PREFIX . "§eĐây là trang cuối rồi.");
+							
+							// Mở lại form sau 1.5 giây
+							$this->plugin->getScheduler()->scheduleDelayedTask(
+								new \pocketmine\scheduler\ClosureTask(
+									function() use ($player, $maxPage): void {
+										if ($player->isOnline()) {
+											$this->plugin->debugLogger->log("TopDonate form: Reopening last page after delay", "form");
+											$this->plugin->getFormManager()->sendTopDonateForm($player, $maxPage);
+										}
+									}
+								), 
+								30 // 30 ticks = 1.5 giây
+							);
+						}
+						break;
 				}
 			}
 		};
