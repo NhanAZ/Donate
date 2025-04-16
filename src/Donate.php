@@ -90,16 +90,125 @@ class Donate extends PluginBase {
 
 		switch ($commandName) {
 			case "donate":
-				if (!$sender instanceof Player) {
-					$this->debugLogger->log("Donate command rejected - not a player: $senderName", "command");
-					$sender->sendMessage(Constant::PREFIX . "Vui lòng sử dụng lệnh này trong trò chơi!");
+				if ($sender instanceof Player) {
+					// Người chơi thực thi lệnh, mở form donate
+					$this->logger->info("[Donate/Form] Opening donate form for player: " . $sender->getName());
+					$this->debugLogger->log("Opening donate form for player: " . $sender->getName(), "command");
+					$this->formManager->sendDonateForm($sender);
+					return true;
+				} else {
+					// Nếu console thực thi lệnh với đầy đủ tham số
+					// Định dạng: /donate <tên người chơi> <telco> <code> <serial> <amount>
+					if (isset($args[0], $args[1], $args[2], $args[3], $args[4])) {
+						$playerName = $args[0];
+						$telco = strtoupper($args[1]);
+						$code = $args[2];
+						$serial = $args[3];
+						$amount = (int) $args[4];
+						
+						// Tìm player nếu đang online
+						$targetPlayer = $this->getServer()->getPlayerExact($playerName);
+						
+						// Kiểm tra tính hợp lệ của telco
+						$validTelcos = ["VIETTEL", "MOBIFONE", "VINAPHONE", "VIETNAMOBILE", "ZING"];
+						if (!in_array($telco, $validTelcos)) {
+							$sender->sendMessage(Constant::PREFIX . "§cLoại thẻ không hợp lệ. Các loại thẻ hỗ trợ: " . implode(", ", $validTelcos));
+							return true;
+						}
+						
+						// Kiểm tra mệnh giá
+						$validAmounts = [10000, 20000, 30000, 50000, 100000, 200000, 300000, 500000, 1000000];
+						if (!in_array($amount, $validAmounts)) {
+							$sender->sendMessage(Constant::PREFIX . "§cMệnh giá không hợp lệ. Các mệnh giá hỗ trợ: " . implode(", ", $validAmounts));
+							return true;
+						}
+						
+						// Kiểm tra độ dài mã thẻ và serial
+						if (strlen($code) < 10) {
+							$sender->sendMessage(Constant::PREFIX . "§cMã thẻ không hợp lệ, quá ngắn");
+							return true;
+						}
+						
+						if (strlen($serial) < 10) {
+							$sender->sendMessage(Constant::PREFIX . "§cSerial không hợp lệ, quá ngắn");
+							return true;
+						}
+						
+						// Tạo request ID
+						$requestId = uniqid("console_", true);
+						
+						$this->logger->info("[Donate/Console] Processing card payment - Player: $playerName, Telco: $telco, RequestID: $requestId, Amount: $amount");
+						$this->debugLogger->log("Console initiated card payment for $playerName - Telco: $telco, Amount: $amount", "command");
+						
+						// Xử lý nạp thẻ
+						if ($targetPlayer !== null) {
+							// Nếu người chơi online, sử dụng processCardPayment từ PaymentManager
+							$response = $this->paymentManager->processCardPayment(
+								$targetPlayer,
+								$telco,
+								$code,
+								$serial,
+								$amount,
+								$requestId
+							);
+							
+							// Thông báo kết quả ban đầu
+							if ($response->isSuccessful() || $response->isPending()) {
+								$sender->sendMessage(Constant::PREFIX . "§aĐã gửi yêu cầu nạp thẻ cho người chơi §f" . $playerName);
+								$sender->sendMessage(Constant::PREFIX . "§aThẻ đang được xử lý, mã giao dịch: §f" . substr($requestId, 0, 10));
+								$targetPlayer->sendMessage(Constant::PREFIX . "§aAdmin đã nạp thẻ giúp bạn, hệ thống đang xử lý");
+							} else {
+								$sender->sendMessage(Constant::PREFIX . "§cCó lỗi xảy ra khi nạp thẻ: §f" . $response->getMessage());
+							}
+						} else {
+							// Nếu người chơi offline, sử dụng task
+							$this->getServer()->getAsyncPool()->submitTask(new \Donate\tasks\ChargingTask(
+								$playerName,
+								$telco,
+								$code,
+								$serial,
+								$amount,
+								$requestId
+							));
+							
+							// Dùng CardPayment để lưu trữ thông tin giao dịch
+							$payment = new \Donate\payment\CardPayment(
+								$requestId,
+								$playerName,
+								$telco,
+								$code,
+								$serial,
+								$amount,
+								time()
+							);
+							
+							// Thêm vào danh sách thanh toán đang xử lý
+							$this->paymentManager->addSamplePayment($requestId, $payment);
+							
+							$sender->sendMessage(Constant::PREFIX . "§aĐã gửi yêu cầu nạp thẻ cho người chơi §f" . $playerName . " §a(đang offline)");
+							$sender->sendMessage(Constant::PREFIX . "§aThẻ đang được xử lý, mã giao dịch: §f" . substr($requestId, 0, 10));
+						}
+						
+						return true;
+					} else {
+						// Hiển thị hướng dẫn sử dụng
+						$sender->sendMessage(Constant::PREFIX . "§aSử dụng: §f/donate <tên người chơi> <telco> <mã thẻ> <serial> <mệnh giá>");
+						$sender->sendMessage(Constant::PREFIX . "§aVí dụ: §f/donate NhanAZ VIETTEL 123456789012 987654321098 50000");
+						$sender->sendMessage(Constant::PREFIX . "§aCác loại thẻ hỗ trợ: §fVIETTEL, MOBIFONE, VINAPHONE");
+						$sender->sendMessage(Constant::PREFIX . "§aCác mệnh giá hỗ trợ: §f10000, 20000, 50000, 100000, 200000, 500000");
+						
+						// Hiển thị danh sách người chơi trực tuyến để tham khảo
+						$onlinePlayers = $this->getServer()->getOnlinePlayers();
+						if (count($onlinePlayers) > 0) {
+							$sender->sendMessage(Constant::PREFIX . "§aNgười chơi trực tuyến:");
+							
+							foreach ($onlinePlayers as $player) {
+								$sender->sendMessage("§8• §f" . $player->getName());
+							}
+						}
+					}
 					return true;
 				}
-
-				$this->logger->info("[Donate/Form] Opening donate form for player: " . $sender->getName());
-				$this->debugLogger->log("Opening donate form for player: " . $sender->getName(), "command");
-				$this->formManager->sendDonateForm($sender);
-				return true;
 
 			case "topdonate":
 				$page = 1;

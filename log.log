@@ -101,3 +101,24 @@
 2025-04-16 [11:00:41.568] [Server thread/INFO]: [Donate/Form] Opening donate form for player: NhanAZ
 2025-04-16 [11:00:41.568] [Server thread/INFO]: [Donate/Form] Sending donate form to player: NhanAZ
 2025-04-16 [11:00:43.948] [Server thread/INFO]: [Donate/Form] Player NhanAZ closed the donate form
+2025-04-16 [11:00:52.237] [Server thread/INFO]: [Donate/Command] Console executed /topdonate
+2025-04-16 [11:00:52.238] [Server thread/INFO]: [Donate/TopDonate] Player Console requested top donators page: 1
+2025-04-16 [11:00:55.477] [Server thread/INFO]: [Donate/Command] Console executed /topdonate 21
+2025-04-16 [11:00:55.477] [Server thread/INFO]: [Donate/TopDonate] Player Console requested top donators page: 21
+2025-04-16 [11:01:08.378] [Server thread/INFO]: [Donate/Command] Console executed /donate
+2025-04-16 [11:04:50.256] [Server thread/INFO]: [2025-04-16 11:04:50] [Donate/DEBUG:GENERAL] Plugin disabled
+[2025-04-16 11:04:50] [Donate/DEBUG:GENERAL] Plugin disabled
+2025-04-16 [11:05:05.457] [Server thread/INFO]: [2025-04-16 11:05:05] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+[2025-04-16 11:05:05] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+2025-04-16 [11:05:08.052] [Server thread/INFO]: [Donate/Command] Console executed /donate
+2025-04-16 [11:05:11.798] [Server thread/INFO]: [Donate/Command] Console executed /donate
+2025-04-16 [11:05:40.156] [Server thread/INFO]: [Donate/Command] Console executed /donate
+2025-04-16 [11:05:44.847] [Server thread/INFO]: [Donate/Command] Console executed /donate NhanAZ
+2025-04-16 [11:05:44.847] [Server thread/INFO]: [Donate/Form] Console opened donate form for player: NhanAZ
+2025-04-16 [11:05:44.847] [Server thread/INFO]: [Donate/Form] Sending donate form to player: NhanAZ
+2025-04-16 [11:05:48.064] [Server thread/INFO]: [Donate/Form] Player NhanAZ closed the donate form
+2025-04-16 [11:05:52.221] [Server thread/INFO]: [2025-04-16 11:05:52] [Donate/DEBUG:GENERAL] Plugin disabled
+[2025-04-16 11:05:52] [Donate/DEBUG:GENERAL] Plugin disabled
+2025-04-16 [11:12:02.683] [Server thread/INFO]: [2025-04-16 11:12:02] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+[2025-04-16 11:12:02] [Donate/DEBUG:GENERAL] Plugin enabled successfully
+2025-04-16 [11:12:03.999] [Server thread/INFO]: [Donate/Command] Console executed /donate
