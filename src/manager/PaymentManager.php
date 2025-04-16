@@ -51,7 +51,7 @@ class PaymentManager {
 	): ChargeResponse {
 		try {
 			// Log payment attempt
-			$this->plugin->logger->info("[Payment] Processing card payment - Player: {$player->getName()}, RequestID: {$requestId}, Telco: {$telco}, Amount: {$amount}");
+			$this->plugin->logger->info("[Donate/Payment] Processing card payment - Player: {$player->getName()}, RequestID: {$requestId}, Telco: {$telco}, Amount: {$amount}");
 			
 			// Debug logging - payment attempt
 			$this->plugin->debugLogger->logPayment(
@@ -116,7 +116,7 @@ class PaymentManager {
 				$this->pendingPayments[$requestId] = $payment;
 
 				// Log payment pending
-				$this->plugin->logger->info("[Payment] Card payment pending - Player: {$player->getName()}, RequestID: {$requestId}, Status: {$response->getStatus()}");
+				$this->plugin->logger->info("[Donate/Payment] Card payment pending - Player: {$player->getName()}, RequestID: {$requestId}, Status: {$response->getStatus()}");
 				
 				// Debug logging - payment pending
 				$this->plugin->debugLogger->logPayment(
@@ -184,7 +184,7 @@ class PaymentManager {
 		// Log the pending payment check
 		$pendingCount = count($this->pendingPayments);
 		if ($pendingCount > 0) {
-			$this->plugin->logger->info("[Payment] Checking " . $pendingCount . " pending payments");
+			$this->plugin->logger->info("[Donate/Payment] Checking " . $pendingCount . " pending payments");
 		}
 		
 		// Debug log number of pending payments
@@ -251,7 +251,7 @@ class PaymentManager {
 					}
 
 					// Log successful payment
-					$this->plugin->logger->info("[Payment] Payment successful - Player: {$payment->getPlayerName()}, RequestID: {$requestId}, Amount: {$amount}");
+					$this->plugin->logger->info("[Donate/Payment] Payment successful - Player: {$payment->getPlayerName()}, RequestID: {$requestId}, Amount: {$amount}");
 					
 					// Debug log - successful payment
 					$this->plugin->debugLogger->logPayment(
@@ -281,7 +281,7 @@ class PaymentManager {
 					$payment->setProcessedAmount($amount);
 				} else {
 					// Log failed payment
-					$this->plugin->logger->info("[Payment] Payment failed - Player: {$payment->getPlayerName()}, RequestID: {$requestId}, Reason: {$response->getMessage()}");
+					$this->plugin->logger->info("[Donate/Payment] Payment failed - Player: {$payment->getPlayerName()}, RequestID: {$requestId}, Reason: {$response->getMessage()}");
 					
 					// Debug log - failed payment
 					$this->plugin->debugLogger->logPayment(

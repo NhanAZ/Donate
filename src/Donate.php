@@ -85,7 +85,7 @@ class Donate extends PluginBase {
 		// Ghi log việc sử dụng lệnh
 		$senderName = $sender instanceof Player ? $sender->getName() : "Console";
 		$argsString = !empty($args) ? " " . implode(" ", $args) : "";
-		$this->logger->info("[Command] $senderName executed /$commandName$argsString");
+		$this->logger->info("[Donate/Command] $senderName executed /$commandName$argsString");
 
 		switch ($commandName) {
 			case "donate":
@@ -94,7 +94,7 @@ class Donate extends PluginBase {
 					return true;
 				}
 
-				$this->logger->info("[Form] Opening donate form for player: " . $sender->getName());
+				$this->logger->info("[Donate/Form] Opening donate form for player: " . $sender->getName());
 				$this->formManager->sendDonateForm($sender);
 				return true;
 
@@ -104,7 +104,7 @@ class Donate extends PluginBase {
 					$page = max(1, (int) $args[0]);
 				}
 
-				$this->logger->info("[TopDonate] Player $senderName requested top donators page: $page");
+				$this->logger->info("[Donate/TopDonate] Player $senderName requested top donators page: $page");
 				$this->showTopDonators($sender, $page);
 				return true;
 				

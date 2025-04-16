@@ -84,16 +84,19 @@ class DebugLogger {
         $prefix = TextFormat::GOLD . "[Debug]" . TextFormat::RESET . " ";
         $formattedMessage = $prefix . $message;
         $timestamp = date('[Y-m-d H:i:s]');
+        
+        // Thêm prefix Donate để phân biệt với các plugin khác
+        $consolePrefix = "[Donate/DEBUG:" . strtoupper($category) . "] ";
 
         // Log to console - sử dụng info thay vì debug để luôn hiển thị trên console
         if ($logToConsole) {
             // Sử dụng info thay vì debug để hiển thị trên console bất kể cài đặt debug của PocketMine
-            $this->plugin->getLogger()->info("[DEBUG/" . strtoupper($category) . "] " . $message);
+            $this->plugin->getLogger()->info($consolePrefix . $message);
         }
 
         // Log to plugin's log file
         if (isset($this->plugin->logger)) {
-            $logLine = $timestamp . " [DEBUG/$category] " . TextFormat::clean($message);
+            $logLine = $timestamp . " [Donate/DEBUG:" . strtoupper($category) . "] " . TextFormat::clean($message);
             // Sử dụng info thay vì debug để đảm bảo ghi vào file log
             $this->plugin->logger->info($logLine);
             
