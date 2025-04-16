@@ -151,3 +151,5 @@
 2025-04-16 [11:36:44.066] [Server thread/INFO]: [2025-04-16 11:36:44] [Donate/DEBUG:PAYMENT] Payment FAILED - Player: NhanAZ, RequestID: console_67ff961104c197.76336869, Details: status: 102, message: INPUT_DATA_INCORRECT
 [2025-04-16 11:36:44] [Donate/DEBUG:PAYMENT] Payment FAILED - Player: NhanAZ, RequestID: console_67ff961104c197.76336869, Details: status: 102, message: INPUT_DATA_INCORRECT
 2025-04-16 [11:36:58.378] [Server thread/INFO]: [Donate/Command] Console executed /donate
+2025-04-16 [12:19:09.997] [Server thread/INFO]: [2025-04-16 12:19:09] [Donate/DEBUG:GENERAL] Plugin disabled
+[2025-04-16 12:19:09] [Donate/DEBUG:GENERAL] Plugin disabled

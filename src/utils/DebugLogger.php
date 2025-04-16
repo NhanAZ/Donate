@@ -132,6 +132,7 @@ class DebugLogger {
 
     /**
      * Log a payment debug message 
+     * @param array<string, mixed> $details Additional payment details
      */
     public function logPayment(
         string $action, 
@@ -145,7 +146,7 @@ class DebugLogger {
 
         $detailsStr = "";
         foreach ($details as $key => $value) {
-            $detailsStr .= "$key: $value, ";
+            $detailsStr .= $key . ": " . (is_scalar($value) ? (string)$value : json_encode($value)) . ", ";
         }
         $detailsStr = rtrim($detailsStr, ", ");
 
@@ -157,6 +158,9 @@ class DebugLogger {
 
     /**
      * Log an API-related debug message
+     * @param string $action The API action performed
+     * @param array<string, mixed> $request Request parameters
+     * @param array<string, mixed> $response Response data
      */
     public function logApi(
         string $action,
@@ -171,7 +175,9 @@ class DebugLogger {
 
         // Clean sensitive data
         if (isset($request["sign"])) {
-            $request["sign"] = substr($request["sign"], 0, 8) . "...";
+            $request["sign"] = is_string($request["sign"]) 
+                ? substr($request["sign"], 0, 8) . "..." 
+                : "***";
         }
         
         if (isset($request["partner_key"])) {
@@ -179,7 +185,9 @@ class DebugLogger {
         }
 
         if (isset($request["code"])) {
-            $request["code"] = substr($request["code"], 0, 4) . "******";
+            $request["code"] = is_string($request["code"]) 
+                ? substr($request["code"], 0, 4) . "******" 
+                : "******";
         }
 
         if (!empty($request)) {

@@ -582,7 +582,7 @@ class Donate extends PluginBase {
 		$sender->sendMessage("§7- Thông báo admin: " . $notifyStatus);
 		$sender->sendMessage("§7- Danh mục:");
 		
-		if (empty($categories)) {
+		if (empty($categories) || !is_array($categories)) {
 			$sender->sendMessage("  §7Không có danh mục nào được cấu hình");
 		} else {
 			foreach ($categories as $category => $status) {
@@ -609,9 +609,9 @@ class Donate extends PluginBase {
 		
 		$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Thông tin file log:"));
 		$sender->sendMessage("§7- Đường dẫn: §f" . $logPath);
-		$sender->sendMessage("§7- Kích thước: §f" . $this->formatFileSize($fileSize));
+		$sender->sendMessage("§7- Kích thước: §f" . $this->formatFileSize($fileSize !== false ? $fileSize : 0));
 		$sender->sendMessage("§7- Quyền ghi: §f" . ($isWritable ? "§aCó" : "§cKhông"));
-		$sender->sendMessage("§7- Lần sửa cuối: §f" . date("Y-m-d H:i:s", $lastModified));
+		$sender->sendMessage("§7- Lần sửa cuối: §f" . date("Y-m-d H:i:s", $lastModified !== false ? $lastModified : time()));
 		
 		// Kiểm tra nội dung file log
 		if ($fileSize > 0) {
@@ -698,6 +698,7 @@ class Donate extends PluginBase {
 	
 	/**
 	 * Đọc số dòng đầu tiên của file
+	 * @return string[]
 	 */
 	private function readFirstLines(string $filePath, int $lineCount): array {
 		$lines = [];
@@ -717,6 +718,7 @@ class Donate extends PluginBase {
 	
 	/**
 	 * Đọc số dòng cuối cùng của file
+	 * @return string[]
 	 */
 	private function readLastLines(string $filePath, int $lineCount): array {
 		$lines = [];
@@ -807,11 +809,19 @@ class Donate extends PluginBase {
 			
 			$this->debugLogger->log("Added $newCount new entries to existing data", "sample");
 			
-			// Lưu lại dữ liệu hợp nhất
-			$this->donateData->setAll($currentData);
+			// Lưu lại dữ liệu hợp nhất - ép kiểu các khóa thành chuỗi
+			$stringKeysData = [];
+			foreach ($currentData as $key => $value) {
+				$stringKeysData[(string)$key] = $value;
+			}
+			$this->donateData->setAll($stringKeysData);
 		} else {
-			// Nếu không có dữ liệu, thêm mới hoàn toàn
-			$this->donateData->setAll($sampleData);
+			// Nếu không có dữ liệu, thêm mới hoàn toàn - ép kiểu các khóa thành chuỗi
+			$stringKeysData = [];
+			foreach ($sampleData as $key => $value) {
+				$stringKeysData[(string)$key] = $value;
+			}
+			$this->donateData->setAll($stringKeysData);
 			$this->debugLogger->log("Added all sample data (20 entries) to empty data file", "sample");
 		}
 		

@@ -164,8 +164,10 @@ class MessageTranslator {
             // Xóa bỏ các ký tự đặc biệt
             $friendlyMessage = preg_replace('/[._-]/', ' ', $friendlyMessage);
             // Chuyển đổi chữ đầu tiên thành viết hoa
-            $friendlyMessage = ucfirst($friendlyMessage);
-            return $friendlyMessage;
+            if ($friendlyMessage !== null) {
+                $friendlyMessage = ucfirst($friendlyMessage);
+            }
+            return $friendlyMessage ?? "Có lỗi xảy ra khi xử lý thẻ";
         }
         
         // Nếu không thể xử lý, log thông báo gốc

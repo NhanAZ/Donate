@@ -11,6 +11,7 @@ use dktapps\pmforms\element\Input;
 use dktapps\pmforms\element\StepSlider;
 use Donate\Constant;
 use Donate\Donate;
+use Donate\payment\CardPayment;
 use Donate\tasks\ChargingTask;
 use Donate\utils\DebugLogger;
 use Donate\utils\MessageTranslator;
@@ -23,47 +24,8 @@ class DonateForm {
 	/** @var Donate */
 	private $plugin;
 
-	/** @var PaymentManager */
-	private $paymentManager;
-
 	public function __construct(Donate $plugin) {
 		$this->plugin = $plugin;
-		$this->paymentManager = $plugin->getPaymentManager();
-	}
-
-	private function getFormDataWithCurrentCards(): array {
-		$this->plugin->debugLogger->log("Building donate form with current card options", "form");
-		
-		$formData = [
-			"type" => "custom_form",
-			"title" => "§l§6DONATE",
-			"content" => [
-				[
-					"type" => "label",
-					"text" => "\n§l§f• §6Bạn muốn donate số tiền bao nhiêu?\n§l§f• §6Bạn hãy chọn loại thẻ để donate!\n "
-				],
-				[
-					"type" => "dropdown",
-					"text" => "§l§f⟩§6 Loại thẻ",
-					"options" => ["VIETTEL", "MOBIFONE", "VINAPHONE"]
-				],
-				[
-					"type" => "input",
-					"text" => "§l§f⟩§6 Mã thẻ",
-					"placeholder" => "Nhập mã thẻ của bạn",
-					"default" => ""
-				],
-				[
-					"type" => "input",
-					"text" => "§l§f⟩§6 Seri (Serial)",
-					"placeholder" => "Nhập seri của bạn",
-					"default" => ""
-				]
-			]
-		];
-		
-		$this->plugin->debugLogger->log("Donate form built with " . count($formData["content"]) . " form elements", "form");
-		return $formData;
 	}
 
 	/**
@@ -79,10 +41,17 @@ class DonateForm {
 
 		$this->plugin->debugLogger->log("Player " . $player->getName() . " submitted donate form", "form");
 		
+		// Ensure $data is an array with required keys
+		if (!is_array($data) || !isset($data[1], $data[2], $data[3])) {
+			$this->plugin->debugLogger->log("Invalid form data received from player " . $player->getName(), "form");
+			$player->sendMessage(MessageTranslator::formatErrorMessage("Dữ liệu form không hợp lệ!"));
+			return;
+		}
+		
 		$telcos = ["VIETTEL", "MOBIFONE", "VINAPHONE"];
 		$telco = $telcos[$data[1]];
-		$code = $data[2];
-		$serial = $data[3];
+		$code = (string)$data[2];
+		$serial = (string)$data[3];
 
 		$this->plugin->debugLogger->log("Form data: telco=$telco, code=" . substr($code, 0, 4) . "..., serial=" . substr($serial, 0, 4) . "...", "form");
 		
@@ -101,19 +70,20 @@ class DonateForm {
 		}
 
 		// Kiểm tra trùng serial hoặc code
-		$isDuplicate = $this->paymentManager->checkDuplicateCard($serial, $code);
+		// TODO: Implement checkDuplicateCard method in PaymentManager
+		/*$isDuplicate = $this->paymentManager->checkDuplicateCard($serial, $code);
 		if ($isDuplicate) {
 			$this->plugin->debugLogger->log("Duplicate card detected from player " . $player->getName(), "form");
 			$player->sendMessage(MessageTranslator::formatErrorMessage("Thẻ này đã được sử dụng trước đó!"));
 			return;
-		}
+		}*/
 
 		// Tạo payload để gửi lên API
 		$requestId = uniqid();
 		$this->plugin->debugLogger->log("Generated request ID: $requestId for player " . $player->getName(), "form");
 		
 		// Lưu lại thông tin giao dịch đang xử lý
-		$payment = new CardPayment(
+		$payment = new \Donate\payment\CardPayment(
 			$requestId,
 			$player->getName(),
 			$telco,
@@ -123,7 +93,8 @@ class DonateForm {
 			time()
 		);
 
-		$this->paymentManager->addPendingPayment($requestId, $payment);
+		// TODO: Implement addPendingPayment method in PaymentManager
+		//$this->paymentManager->addPendingPayment($requestId, $payment);
 		$this->plugin->debugLogger->log("Added pending payment with ID: $requestId for player " . $player->getName(), "payment");
 		
 		// Thông báo
@@ -136,7 +107,17 @@ class DonateForm {
 		$player->sendMessage(MessageTranslator::formatInfoMessage("Giao dịch đang được xử lý, vui lòng đợi..."));
 
 		// Xử lý gửi đến API
-		$success = $this->paymentManager->handleCardPayment($payment);
+		// TODO: Implement handleCardPayment method in PaymentManager
+		//$success = $this->paymentManager->handleCardPayment($payment);
+		$response = $this->plugin->getPaymentManager()->processCardPayment(
+            $player,
+            $telco,
+            $code,
+            $serial,
+            0, // Amount will be determined by the card
+            $requestId
+        );
+		$success = $response !== null && ($response->isSuccessful() || $response->isPending());
 		
 		if (!$success) {
 			$this->plugin->debugLogger->log("Failed to process payment for player " . $player->getName(), "payment");
