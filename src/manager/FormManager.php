@@ -34,6 +34,9 @@ class FormManager {
 	/** @var array<string, int> Last form submission time by player */
 	public array $lastFormSubmission = [];
 
+	/** @var array<string, int> Last donate form submission time by player */
+	public array $lastDonateFormSubmission = [];
+
 	// Form cooldown setting
 	/** @var int Cooldown between form submissions in seconds */
 	private int $formCooldown = 5; // Default: 5 seconds cooldown
@@ -64,20 +67,20 @@ class FormManager {
 		$playerName = $player->getName();
 		$currentTime = time();
 
-		if (isset($this->lastFormSubmission[$playerName])) {
-			$lastTime = $this->lastFormSubmission[$playerName];
+		if (isset($this->lastDonateFormSubmission[$playerName])) {
+			$lastTime = $this->lastDonateFormSubmission[$playerName];
 			$timeDiff = $currentTime - $lastTime;
 
 			if ($timeDiff < $this->formCooldown) {
 				$remainingTime = $this->formCooldown - $timeDiff;
-				$player->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Vui lòng đợi {$remainingTime} giây trước khi mở form lại."));
-				$this->plugin->debugLogger->log("Form spam prevented - Player: {$playerName} tried to open form too quickly", "form");
+				$player->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Vui lòng đợi {$remainingTime} giây trước khi mở form nạp thẻ lại."));
+				$this->plugin->debugLogger->log("Form spam prevented - Player: {$playerName} tried to open donate form too quickly", "form");
 				return;
 			}
 		}
 
 		// Update the last form time
-		$this->lastFormSubmission[$playerName] = $currentTime;
+		$this->lastDonateFormSubmission[$playerName] = $currentTime;
 
 		$this->plugin->logger->info("[Donate/Form] Sending donate form to player: " . $player->getName());
 		$form = $this->createDonateForm();
@@ -150,8 +153,8 @@ class FormManager {
 				$formManager = $this->plugin->getFormManager();
 
 				// Check if the player is attempting to submit forms too quickly
-				if (isset($formManager->lastFormSubmission[$playerName])) {
-					$lastTime = $formManager->lastFormSubmission[$playerName];
+				if (isset($formManager->lastDonateFormSubmission[$playerName])) {
+					$lastTime = $formManager->lastDonateFormSubmission[$playerName];
 					$timeDiff = $currentTime - $lastTime;
 
 					if ($timeDiff < $formManager->getFormCooldown()) {
@@ -163,7 +166,7 @@ class FormManager {
 				}
 
 				// Update the last submission time
-				$formManager->lastFormSubmission[$playerName] = $currentTime;
+				$formManager->lastDonateFormSubmission[$playerName] = $currentTime;
 
 				if (!is_array($data)) {
 					$player->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Có lỗi xảy ra khi xử lý biểu mẫu!"));
