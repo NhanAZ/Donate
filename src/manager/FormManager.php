@@ -88,25 +88,8 @@ class FormManager {
 	 * Send the top donate form to a player
 	 */
 	public function sendTopDonateForm(Player $player, int $page = 1) : void {
-		// Check for cooldown to prevent spam
+		// Remove cooldown check for TopDonate form
 		$playerName = $player->getName();
-		$currentTime = time();
-
-		if (isset($this->lastFormSubmission[$playerName])) {
-			$lastTime = $this->lastFormSubmission[$playerName];
-			$timeDiff = $currentTime - $lastTime;
-
-			if ($timeDiff < $this->formCooldown) {
-				$remainingTime = $this->formCooldown - $timeDiff;
-				$player->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Vui lòng đợi {$remainingTime} giây trước khi mở form lại."));
-				$this->plugin->debugLogger->log("TopDonate form spam prevented - Player: {$playerName} tried to open form too quickly", "form");
-				return;
-			}
-		}
-
-		// Update the last form time
-		$this->lastFormSubmission[$playerName] = $currentTime;
-
 		$this->plugin->logger->info("[Donate/Form] Sending top donate form to player: " . $player->getName() . ", page: " . $page);
 		$this->plugin->debugLogger->log("Sending top donate form to player: " . $player->getName() . ", page: " . $page, "form");
 		$form = $this->createTopDonateForm($page);
@@ -436,7 +419,7 @@ class FormManager {
 							$this->plugin->debugLogger->log("TopDonate form: Attempted to go to previous page while on first page", "form");
 
 							// Hiển thị thông báo
-							$player->sendMessage(Constant::PREFIX . "§eĐây là trang đầu tiên rồi.");
+							$player->sendTip(Constant::PREFIX . "§eĐây là trang đầu tiên rồi.");
 
 							// Mở lại form sau 1.5 giây
 							$this->plugin->getScheduler()->scheduleDelayedTask(
@@ -467,7 +450,7 @@ class FormManager {
 							$this->plugin->debugLogger->log("TopDonate form: Attempted to go to next page while on last page", "form");
 
 							// Hiển thị thông báo
-							$player->sendMessage(Constant::PREFIX . "§eĐây là trang cuối rồi.");
+							$player->sendTip(Constant::PREFIX . "§eĐây là trang cuối rồi.");
 
 							// Mở lại form sau 1.5 giây
 							$this->plugin->getScheduler()->scheduleDelayedTask(
