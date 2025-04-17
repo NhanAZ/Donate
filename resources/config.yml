@@ -1,16 +1,41 @@
 ---
 # Donate Plugin Configuration
+# Plugin nạp thẻ cho PocketMine-MP
 
 # Partner credentials (từ trumthe.vn)
 partner_id: ""  # ID đối tác
 partner_key: "" # Khóa API đối tác
 
-# Reward settings
+# Reward settings (Cài đặt phần thưởng)
 bonus_multiplier: 1.0  # Hệ số nhân điểm khi nạp thẻ thành công (1.0 = 100%)
+reward_command: "givemoney {player} {amount}" # Lệnh thực thi khi nạp thành công, {player} = tên người chơi, {amount} = số tiền
 
-# API settings
+# API settings (Cài đặt API)
 api_url: "https://trumthe.vn/chargingws/v2"
 api_timeout: 10  # Thời gian timeout khi gọi API (giây)
 
-# Task settings
-check_interval: 30  # Kiểm tra trạng thái thanh toán sau mỗi x giây 
+# Task settings (Cài đặt công việc)
+check_interval: 30  # Kiểm tra trạng thái thanh toán sau mỗi x giây
+immediate_check_interval: 5  # Thời gian giữa các lần kiểm tra ngay lập tức (giây)
+max_immediate_checks: 12  # Số lần kiểm tra ngay lập tức tối đa
+
+# Debug settings (Cài đặt gỡ lỗi)
+debug:
+  enabled: false  # Bật/tắt chế độ gỡ lỗi
+  notify_admins: false  # Gửi thông báo gỡ lỗi đến admin
+  categories:  # Danh mục gỡ lỗi
+    payment: true  # Gỡ lỗi thanh toán
+    api: true  # Gỡ lỗi API
+    form: true  # Gỡ lỗi biểu mẫu
+    general: true  # Gỡ lỗi chung
+
+# Anti-spam settings (Chống spam)
+anti_spam:
+  form_cooldown: 5  # Thời gian chờ giữa các lần mở form (giây)
+  command_cooldown: 3  # Thời gian chờ giữa các lần sử dụng lệnh (giây)
+
+# Notification settings (Cài đặt thông báo)
+notifications:
+  broadcast_donations: true  # Thông báo toàn server khi có người nạp thẻ
+  broadcast_threshold: 20000  # Chỉ thông báo nếu số tiền nạp lớn hơn ngưỡng này (VNĐ)
+  broadcast_message: "§l§f⟩§6 Người chơi §f{player} §6vừa nạp thành công §f{amount}₫" 
