@@ -393,6 +393,9 @@ class FormManager {
 					$buttons[] = ['text' => '§l§0Trang Sau §8»', 'tooltip' => 'Đây đã là trang cuối cùng'];
 				}
 
+				// Thêm nút để mở form nhập số trang
+				$buttons[] = ['text' => '§l§8« §eNhập Số Trang §8»'];
+
 				return [
 					'type' => 'form',
 					'title' => '§l§f• §8[§6Xếp Hạng Donate§8] §f•',
@@ -421,7 +424,9 @@ class FormManager {
 				$itemsPerPage = 10;
 				$maxPage = (int) ceil($totalPlayers / $itemsPerPage);
 
-				switch ($data) {
+				// Use integer cast of $data for the switch statement
+				$dataInt = DataTypeUtils::toInt($data);
+				switch ($dataInt) {
 					case 0: // Trang trước
 						if ($this->page > 1) {
 							$this->plugin->debugLogger->log("TopDonate form: Going to previous page: " . ($this->page - 1), "form");
@@ -478,7 +483,61 @@ class FormManager {
 							);
 						}
 						break;
+
+					case 3: // Nhập số trang
+						$this->plugin->debugLogger->log("TopDonate form: Player " . $player->getName() . " clicked Go To Page button", "form");
+						$this->openGoToPageForm($player, $maxPage);
+						break;
 				}
+			}
+
+			/**
+			 * Mở form nhập số trang
+			 */
+			private function openGoToPageForm(Player $player, int $maxPage) : void {
+				$form = new \dktapps\pmforms\CustomForm(
+					'§l§f• §8[§6Chuyển Trang§8] §f•',
+					[
+						new \dktapps\pmforms\element\Label("info", "§fNhập số trang bạn muốn xem (1-{$maxPage}):"),
+						new \dktapps\pmforms\element\Input("page", "Số trang", "Nhập số từ 1 đến {$maxPage}")
+					],
+					function(Player $player, \dktapps\pmforms\CustomFormResponse $data) use ($maxPage) : void {
+						// Get the entered page number
+						$pageInput = $data->getString("page");
+						$pageInputStr = DataTypeUtils::toString($pageInput);
+						$this->plugin->debugLogger->log("GoToPage form: Player " . $player->getName() . " entered page: " . $pageInputStr, "form");
+						
+						// Validate and convert to integer
+						if (!is_numeric($pageInput)) {
+							$player->sendMessage(Constant::PREFIX . "§cVui lòng nhập một số hợp lệ!");
+							// Reopen the original form
+							$this->plugin->getFormManager()->sendTopDonateForm($player, $this->page);
+							return;
+						}
+						
+						$pageNumber = (int) $pageInput;
+						
+						// Validate the page number
+						if ($pageNumber < 1 || $pageNumber > $maxPage) {
+							$player->sendMessage(Constant::PREFIX . "§cSố trang phải từ 1 đến {$maxPage}!");
+							// Reopen the original form
+							$this->plugin->getFormManager()->sendTopDonateForm($player, $this->page);
+							return;
+						}
+						
+						// Go to the specified page
+						$this->plugin->debugLogger->log("GoToPage form: Going to page " . $pageNumber, "form");
+						$this->plugin->getFormManager()->sendTopDonateForm($player, $pageNumber);
+					},
+					function(Player $player) : void {
+						// Form was closed without submitting
+						$this->plugin->debugLogger->log("GoToPage form: Player " . $player->getName() . " closed the form", "form");
+						// Reopen the original form
+						$this->plugin->getFormManager()->sendTopDonateForm($player, $this->page);
+					}
+				);
+				
+				$player->sendForm($form);
 			}
 		};
 	}
