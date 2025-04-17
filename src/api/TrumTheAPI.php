@@ -167,7 +167,9 @@ final class TrumTheAPI {
 		// Log the API response
 		$status = $responseData['status'] ?? 'unknown';
 		$message = $responseData['message'] ?? 'no message';
-		$plugin->logger->info("[Donate/API] Received card charge response - RequestID: $requestId, Status: $status, Message: $message");
+		$statusStr = DataTypeUtils::toString($status);
+		$messageStr = DataTypeUtils::toString($message);
+		$plugin->logger->info("[Donate/API] Received card charge response - RequestID: " . $requestId . ", Status: " . $statusStr . ", Message: " . $messageStr);
 
 		// Special log for PENDING status to clarify it's being processed, not an error
 		if (isset($responseData['message']) && $responseData['message'] === "PENDING") {
@@ -179,17 +181,21 @@ final class TrumTheAPI {
 
 		// Debug logging - API response
 		if (isset($plugin->debugLogger)) {
-			$plugin->debugLogger->logApi("CHARGE_RESPONSE", [], $responseData);
+			// Cast to array<string, mixed>
+			$responseDataTyped = DataTypeUtils::toStringKeyedArray($responseData);
+			$plugin->debugLogger->logApi("CHARGE_RESPONSE", [], $responseDataTyped);
+			
 			// Log chi tiết thông báo lỗi để debug
 			if (isset($responseData['message'])) {
+				$messageContent = DataTypeUtils::toString($responseData['message']);
 				$plugin->debugLogger->log(
-					"API response message (raw): '{$responseData['message']}'",
+					"API response message (raw): '" . $messageContent . "'",
 					"api"
 				);
 			}
 		}
 
-		return ChargeResponse::fromArray($responseData);
+		return ChargeResponse::fromArray(DataTypeUtils::toStringKeyedArray($responseData));
 	}
 
 	/**
@@ -234,7 +240,9 @@ final class TrumTheAPI {
 			if (isset($cardInfo['amount'])) $data['amount'] = $cardInfo['amount'];
 
 			// Tính sign giống như trong chargeCard
-			$data['sign'] = md5($partnerKey . $cardInfo['code'] . $cardInfo['serial']);
+			$codeStr = DataTypeUtils::toString($cardInfo['code']);
+			$serialStr = DataTypeUtils::toString($cardInfo['serial']);
+			$data['sign'] = md5($partnerKey . $codeStr . $serialStr);
 
 			$plugin->debugLogger->log(
 				"Added original card info to status check request for RequestID: $requestId",
@@ -292,7 +300,9 @@ final class TrumTheAPI {
 		// Log the API response
 		$status = $responseData['status'] ?? 'unknown';
 		$message = $responseData['message'] ?? 'no message';
-		$plugin->logger->info("[Donate/API] Received card status response - RequestID: $requestId, Status: $status, Message: $message");
+		$statusStr = DataTypeUtils::toString($status);
+		$messageStr = DataTypeUtils::toString($message);
+		$plugin->logger->info("[Donate/API] Received card status response - RequestID: " . $requestId . ", Status: " . $statusStr . ", Message: " . $messageStr);
 
 		// Special log for PENDING status to clarify it's being processed, not an error
 		if (isset($responseData['message']) && $responseData['message'] === "PENDING") {
@@ -304,10 +314,12 @@ final class TrumTheAPI {
 
 		// Debug logging - API status response
 		if (isset($plugin->debugLogger)) {
-			$plugin->debugLogger->logApi("STATUS_RESPONSE", [], $responseData);
+			// Cast to array<string, mixed>
+			$responseDataTyped = DataTypeUtils::toStringKeyedArray($responseData);
+			$plugin->debugLogger->logApi("STATUS_RESPONSE", [], $responseDataTyped);
 		}
 
-		return ChargeStatusResponse::fromArray($responseData);
+		return ChargeStatusResponse::fromArray(DataTypeUtils::toStringKeyedArray($responseData));
 	}
 
 	/**

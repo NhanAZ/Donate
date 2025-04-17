@@ -143,4 +143,18 @@ final class DataTypeUtils {
 		}
 		return $result;
 	}
+
+	/**
+	 * Safely convert an array to array<string, mixed> by ensuring all keys are strings
+	 * 
+	 * @param array<mixed, mixed> $data Input array with any key types
+	 * @return array<string, mixed> Array with string keys
+	 */
+	public static function toStringKeyedArray(array $data): array {
+		$result = [];
+		foreach ($data as $key => $value) {
+			$result[self::toString($key)] = $value;
+		}
+		return $result;
+	}
 }

@@ -131,8 +131,6 @@ final class PaymentProcessor {
 					continue;
 				}
 
-				assert($response instanceof ChargeStatusResponse);
-
 				// If the card is still being processed, skip
 				if ($response->isPending()) {
 					continue;

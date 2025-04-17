@@ -18,6 +18,7 @@ use Donate\utils\MessageTranslator;
 use Donate\manager\PaymentManager;
 use pocketmine\player\Player;
 use pocketmine\Server;
+use Donate\utils\DataTypeUtils;
 
 class DonateForm {
 
@@ -50,20 +51,20 @@ class DonateForm {
 
 		$telcos = ["VIETTEL", "MOBIFONE", "VINAPHONE"];
 		$telco = $telcos[$data[1]];
-		$code = (string)$data[2];
-		$serial = (string)$data[3];
+		$code = DataTypeUtils::toString($data[2]);
+		$serial = DataTypeUtils::toString($data[3]);
 
 		$this->plugin->debugLogger->log("Form data: telco=$telco, code=" . substr($code, 0, 4) . "..., serial=" . substr($serial, 0, 4) . "...", "form");
 
 		// Validate card code
-		if (empty($code) || !is_string($code) || strlen($code) < 10) {
+		if (empty($code) || strlen($code) < 10) {
 			$this->plugin->debugLogger->log("Invalid card code from player " . $player->getName(), "form");
 			$player->sendMessage(MessageTranslator::formatErrorMessage("Mã thẻ không hợp lệ!"));
 			return;
 		}
 
 		// Validate card serial
-		if (empty($serial) || !is_string($serial) || strlen($serial) < 10) {
+		if (empty($serial) || strlen($serial) < 10) {
 			$this->plugin->debugLogger->log("Invalid card serial from player " . $player->getName(), "form");
 			$player->sendMessage(MessageTranslator::formatErrorMessage("Seri thẻ không hợp lệ!"));
 			return;
@@ -117,7 +118,8 @@ class DonateForm {
 			0, // Amount will be determined by the card
 			$requestId
 		);
-		$success = $response !== null && ($response->isSuccessful() || $response->isPending());
+		// The response is never null, so we only need to check if it's successful or pending
+		$success = $response->isSuccessful() || $response->isPending();
 
 		if (!$success) {
 			$this->plugin->debugLogger->log("Failed to process payment for player " . $player->getName(), "payment");

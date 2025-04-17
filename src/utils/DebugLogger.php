@@ -52,7 +52,7 @@ class DebugLogger {
 		$categories = $config->getNested("debug.categories", []);
 		if (is_array($categories)) {
 			foreach ($categories as $category => $enabled) {
-				$this->enabledCategories[$category] = (bool) $enabled;
+				$this->enabledCategories[(string)$category] = (bool) $enabled;
 			}
 		}
 	}

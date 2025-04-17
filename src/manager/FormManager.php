@@ -11,6 +11,7 @@ use pocketmine\player\Player;
 use pocketmine\utils\Utils;
 use Ramsey\Uuid\Uuid;
 use pocketmine\scheduler\ClosureTask;
+use Donate\utils\DataTypeUtils;
 
 class FormManager {
 	private Donate $plugin;
@@ -392,7 +393,9 @@ class FormManager {
 					return; // Người chơi đóng form
 				}
 
-				$this->plugin->debugLogger->log("TopDonate form: Player " . $player->getName() . " clicked button index: " . $data, "form");
+				// Convert $data to string and store in variable first
+				$dataStr = \Donate\utils\DataTypeUtils::toString($data);
+				$this->plugin->debugLogger->log("TopDonate form: Player " . $player->getName() . " clicked button index: " . $dataStr, "form");
 
 				$donateData = $this->plugin->getDonateData()->getAll();
 				if (empty($donateData)) {

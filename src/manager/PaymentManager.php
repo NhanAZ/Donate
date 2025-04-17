@@ -242,8 +242,6 @@ class PaymentManager {
 					continue;
 				}
 
-				assert($response instanceof ChargeStatusResponse);
-
 				// If the card is still being processed, skip
 				if ($response->isPending()) {
 					// Debug log - still pending
