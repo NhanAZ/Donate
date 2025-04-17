@@ -506,7 +506,7 @@ class FormManager {
 						$pageInput = $data->getString("page");
 						$pageInputStr = DataTypeUtils::toString($pageInput);
 						$this->plugin->debugLogger->log("GoToPage form: Player " . $player->getName() . " entered page: " . $pageInputStr, "form");
-						
+
 						// Validate and convert to integer
 						if (!is_numeric($pageInput)) {
 							$player->sendMessage(Constant::PREFIX . "§cVui lòng nhập một số hợp lệ!");
@@ -514,9 +514,9 @@ class FormManager {
 							$this->plugin->getFormManager()->sendTopDonateForm($player, $this->page);
 							return;
 						}
-						
+
 						$pageNumber = (int) $pageInput;
-						
+
 						// Validate the page number
 						if ($pageNumber < 1 || $pageNumber > $maxPage) {
 							$player->sendMessage(Constant::PREFIX . "§cSố trang phải từ 1 đến {$maxPage}!");
@@ -524,7 +524,7 @@ class FormManager {
 							$this->plugin->getFormManager()->sendTopDonateForm($player, $this->page);
 							return;
 						}
-						
+
 						// Go to the specified page
 						$this->plugin->debugLogger->log("GoToPage form: Going to page " . $pageNumber, "form");
 						$this->plugin->getFormManager()->sendTopDonateForm($player, $pageNumber);
@@ -536,7 +536,7 @@ class FormManager {
 						$this->plugin->getFormManager()->sendTopDonateForm($player, $this->page);
 					}
 				);
-				
+
 				$player->sendForm($form);
 			}
 		};
