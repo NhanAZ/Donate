@@ -4,35 +4,31 @@ declare(strict_types=1);
 
 namespace Donate\api;
 
-use Donate\Constant;
 use Donate\StatusCode;
 use Donate\utils\DataTypeUtils;
 use JsonSerializable;
+use function class_exists;
+use function strpos;
+use function strtoupper;
 
 /**
  * Response from the charge card API
  */
 class ChargeResponse implements JsonSerializable {
-	/** @var int */
 	private int $status;
 
-	/** @var string */
 	private string $message;
 
-	/** @var int|null */
 	private ?int $amount = null;
 
-	/** @var string|null */
 	private ?string $transactionId = null;
 
-	/** @var float|null */
 	private ?float $declared = null;
 
-	/** @var float|null */
 	private ?float $received = null;
 
 	/**
-	 * @param int $status Status code
+	 * @param int    $status  Status code
 	 * @param string $message Response message
 	 */
 	public function __construct(int $status, string $message) {
@@ -42,11 +38,10 @@ class ChargeResponse implements JsonSerializable {
 
 	/**
 	 * Create from API response array
-	 * 
+	 *
 	 * @param array<string, mixed> $data API response data
-	 * @return self
 	 */
-	public static function fromArray(array $data): self {
+	public static function fromArray(array $data) : self {
 		// Extract status with safe default
 		$status = DataTypeUtils::toInt(DataTypeUtils::getArrayValue($data, 'status', -1), -1);
 
@@ -81,73 +76,73 @@ class ChargeResponse implements JsonSerializable {
 	/**
 	 * Check if the initial charge was successful
 	 */
-	public function isSuccessful(): bool {
+	public function isSuccessful() : bool {
 		return $this->status === StatusCode::SUCCESS;
 	}
 
 	/**
 	 * Check if the card is pending processing
 	 */
-	public function isPending(): bool {
-		// Check if status code is explicitly PENDING OR 
+	public function isPending() : bool {
+		// Check if status code is explicitly PENDING OR
 		// if message contains "PENDING" (in case the API returns status 99 with PENDING message)
-		return $this->status === StatusCode::PENDING || 
+		return $this->status === StatusCode::PENDING ||
 			   (strtoupper($this->message) === "PENDING" && $this->status === StatusCode::FAILED_WITH_REASON);
 	}
 
 	/**
 	 * Get the status code
 	 */
-	public function getStatus(): int {
+	public function getStatus() : int {
 		return $this->status;
 	}
 
 	/**
 	 * Get the response message
 	 */
-	public function getMessage(): string {
+	public function getMessage() : string {
 		return $this->message;
 	}
 
 	/**
 	 * Get the amount (if available)
 	 */
-	public function getAmount(): ?int {
+	public function getAmount() : ?int {
 		return $this->amount;
 	}
 
 	/**
 	 * Get the transaction ID (if available)
 	 */
-	public function getTransactionId(): ?string {
+	public function getTransactionId() : ?string {
 		return $this->transactionId;
 	}
 
 	/**
 	 * Get the declared value (if available)
 	 */
-	public function getDeclared(): ?float {
+	public function getDeclared() : ?float {
 		return $this->declared;
 	}
 
 	/**
 	 * Get the received value (if available)
 	 */
-	public function getReceived(): ?float {
+	public function getReceived() : ?float {
 		return $this->received;
 	}
 
 	/**
 	 * Checks if the API request itself was successful
 	 */
-	public function isValidRequest(): bool {
+	public function isValidRequest() : bool {
 		return $this->status !== -1 && $this->message !== 'Unknown error';
 	}
 
 	/**
 	 * Returns user-friendly message for the response
 	 */
-	public function getFriendlyMessage(): string {
+	public function getFriendlyMessage() : string {
 		// Debug log để xem thông báo gốc
 		if (class_exists("\Donate\Donate") && $this->status !== StatusCode::SUCCESS && $this->status !== StatusCode::PENDING) {
 			$plugin = \Donate\Donate::getInstance();
@@ -182,7 +177,7 @@ class ChargeResponse implements JsonSerializable {
 	/**
 	 * @return array<string, mixed>
 	 */
-	public function jsonSerialize(): array {
+	public function jsonSerialize() : array {
 		return [
 			'status' => $this->status,
 			'message' => $this->message,

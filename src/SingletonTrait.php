@@ -8,11 +8,11 @@ trait SingletonTrait {
 
 	public static Donate $instance;
 
-	public static function setInstance(Donate $instance): void {
+	public static function setInstance(Donate $instance) : void {
 		self::$instance = $instance;
 	}
 
-	public static function getInstance(): Donate {
+	public static function getInstance() : Donate {
 		return self::$instance;
 	}
 }

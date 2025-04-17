@@ -5,6 +5,15 @@ declare(strict_types=1);
 namespace Donate\utils;
 
 use Donate\Constant;
+use function class_exists;
+use function number_format;
+use function preg_match;
+use function preg_replace;
+use function str_replace;
+use function str_starts_with;
+use function stripos;
+use function strpos;
+use function ucfirst;
 
 /**
  * Lớp dịch các thông báo lỗi từ API thành thông báo thân thiện cho người chơi
@@ -14,7 +23,7 @@ class MessageTranslator {
 	/**
 	 * Chuyển đổi thông báo lỗi API thành thông báo thân thiện
 	 */
-	public static function translateErrorMessage(string $errorMessage): string {
+	public static function translateErrorMessage(string $errorMessage) : string {
 		// Debug log exact input
 		if (class_exists("\Donate\Donate")) {
 			$plugin = \Donate\Donate::getInstance();
@@ -68,11 +77,11 @@ class MessageTranslator {
 			"charging.invalid_telco" => "Nhà mạng không được hỗ trợ",
 			"charging.telco_maintain" => "Nhà mạng đang bảo trì",
 
-			// Thông báo từ FormManager 
+			// Thông báo từ FormManager
 			"Vui lòng không để trống số sê-ri hoặc mã thẻ!" => "Vui lòng không để trống số sê-ri hoặc mã thẻ!",
 			"Có lỗi xảy ra khi xử lý biểu mẫu!" => "Có lỗi xảy ra khi xử lý biểu mẫu!",
 
-			// Các lỗi kết nối 
+			// Các lỗi kết nối
 			"connection.failed" => "Không thể kết nối đến máy chủ thanh toán",
 			"connection.timeout" => "Kết nối đến máy chủ thanh toán quá thời gian chờ",
 
@@ -188,7 +197,7 @@ class MessageTranslator {
 	/**
 	 * Định dạng thông báo lỗi với prefix
 	 */
-	public static function formatErrorMessage(string $errorMessage): string {
+	public static function formatErrorMessage(string $errorMessage) : string {
 		// Log the original message for debugging
 		if (class_exists("\Donate\Donate")) {
 			$plugin = \Donate\Donate::getInstance();
@@ -219,21 +228,21 @@ class MessageTranslator {
 	/**
 	 * Định dạng thông báo thành công với prefix
 	 */
-	public static function formatSuccessMessage(string $message): string {
+	public static function formatSuccessMessage(string $message) : string {
 		return Constant::PREFIX . "§a" . $message;
 	}
 
 	/**
 	 * Định dạng thông báo thông tin với prefix
 	 */
-	public static function formatInfoMessage(string $message): string {
+	public static function formatInfoMessage(string $message) : string {
 		return Constant::PREFIX . "§e" . $message;
 	}
 
 	/**
 	 * Định dạng thông báo số tiền
 	 */
-	public static function formatAmount(int $amount): string {
+	public static function formatAmount(int $amount) : string {
 		return number_format($amount, 0, ",", ".") . "₫";
 	}
 }

@@ -20,13 +20,13 @@ class CardPayment implements JsonSerializable {
 	private ?int $processedAmount = null;
 
 	/**
-	 * @param string $requestId Unique request ID for the payment
+	 * @param string $requestId  Unique request ID for the payment
 	 * @param string $playerName Name of the player who initiated the payment
-	 * @param string $telco Telco/provider code
-	 * @param string $code Card code
-	 * @param string $serial Card serial number
-	 * @param int $amount Card amount value
-	 * @param int $createdAt Timestamp when the payment was created
+	 * @param string $telco      Telco/provider code
+	 * @param string $code       Card code
+	 * @param string $serial     Card serial number
+	 * @param int    $amount     Card amount value
+	 * @param int    $createdAt  Timestamp when the payment was created
 	 */
 	public function __construct(
 		private string $requestId,
@@ -42,119 +42,119 @@ class CardPayment implements JsonSerializable {
 	/**
 	 * Get the request ID
 	 */
-	public function getRequestId(): string {
+	public function getRequestId() : string {
 		return $this->requestId;
 	}
 
 	/**
 	 * Get the player name
 	 */
-	public function getPlayerName(): string {
+	public function getPlayerName() : string {
 		return $this->playerName;
 	}
 
 	/**
 	 * Get the telco/provider code
 	 */
-	public function getTelco(): string {
+	public function getTelco() : string {
 		return $this->telco;
 	}
 
 	/**
 	 * Get the card code
 	 */
-	public function getCode(): string {
+	public function getCode() : string {
 		return $this->code;
 	}
 
 	/**
 	 * Get the card serial number
 	 */
-	public function getSerial(): string {
+	public function getSerial() : string {
 		return $this->serial;
 	}
 
 	/**
 	 * Get the card amount value
 	 */
-	public function getAmount(): int {
+	public function getAmount() : int {
 		return $this->amount;
 	}
 
 	/**
 	 * Get the timestamp when the payment was created
 	 */
-	public function getCreatedAt(): int {
+	public function getCreatedAt() : int {
 		return $this->createdAt;
 	}
 
 	/**
 	 * Get the payment status
 	 */
-	public function getStatus(): string {
+	public function getStatus() : string {
 		return $this->status;
 	}
 
 	/**
 	 * Set the payment status
 	 */
-	public function setStatus(string $status): void {
+	public function setStatus(string $status) : void {
 		$this->status = $status;
 	}
 
 	/**
 	 * Get the reason for failure
 	 */
-	public function getFailReason(): ?string {
+	public function getFailReason() : ?string {
 		return $this->failReason;
 	}
 
 	/**
 	 * Set the reason for failure
 	 */
-	public function setFailReason(string $reason): void {
+	public function setFailReason(string $reason) : void {
 		$this->failReason = $reason;
 	}
 
 	/**
 	 * Get the processed amount
 	 */
-	public function getProcessedAmount(): ?int {
+	public function getProcessedAmount() : ?int {
 		return $this->processedAmount;
 	}
 
 	/**
 	 * Set the processed amount
 	 */
-	public function setProcessedAmount(int $amount): void {
+	public function setProcessedAmount(int $amount) : void {
 		$this->processedAmount = $amount;
 	}
 
 	/**
 	 * Check if the payment is pending
 	 */
-	public function isPending(): bool {
+	public function isPending() : bool {
 		return $this->status === PaymentStatus::PENDING;
 	}
 
 	/**
 	 * Check if the payment was successful
 	 */
-	public function isSuccessful(): bool {
+	public function isSuccessful() : bool {
 		return $this->status === PaymentStatus::SUCCESSFUL;
 	}
 
 	/**
 	 * Check if the payment failed
 	 */
-	public function isFailed(): bool {
+	public function isFailed() : bool {
 		return $this->status === PaymentStatus::FAILED;
 	}
 
 	/**
 	 * @return array<string, mixed>
 	 */
-	public function jsonSerialize(): array {
+	public function jsonSerialize() : array {
 		return [
 			'request_id' => $this->requestId,
 			'player_name' => $this->playerName,

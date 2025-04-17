@@ -11,7 +11,6 @@ use pocketmine\scheduler\Task;
  * Task to periodically check payment statuses
  */
 class PaymentCheckTask extends Task {
-	/** @var PaymentManager */
 	private PaymentManager $paymentManager;
 
 	/**
@@ -24,7 +23,7 @@ class PaymentCheckTask extends Task {
 	/**
 	 * Check payment statuses on each tick
 	 */
-	public function onRun(): void {
+	public function onRun() : void {
 		// Only check if there are pending payments
 		if (!$this->paymentManager->hasPendingPayments()) {
 			return;

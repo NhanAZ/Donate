@@ -9,6 +9,8 @@ use Donate\Constant;
 use pocketmine\player\Player;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
+use function is_array;
+use function is_string;
 
 /**
  * Task to handle card charging asynchronously
@@ -16,11 +18,11 @@ use pocketmine\Server;
 class ChargingTask extends AsyncTask {
 	/**
 	 * @param string $playerName Name of the player
-	 * @param string $telco Telco code
-	 * @param string $code Card code
-	 * @param string $serial Card serial number
-	 * @param int $amount Card amount
-	 * @param string $requestId Unique request ID
+	 * @param string $telco      Telco code
+	 * @param string $code       Card code
+	 * @param string $serial     Card serial number
+	 * @param int    $amount     Card amount
+	 * @param string $requestId  Unique request ID
 	 */
 	public function __construct(
 		private string $playerName,
@@ -32,7 +34,7 @@ class ChargingTask extends AsyncTask {
 	) {
 	}
 
-	public function onRun(): void {
+	public function onRun() : void {
 		// We need to make API calls here, but the TrumTheAPI is a better place to do this
 		// The actual charging process is handled by the PaymentProcessor class
 		// This task is just to ensure that the GUI doesn't freeze while making API calls
@@ -48,7 +50,7 @@ class ChargingTask extends AsyncTask {
 		]);
 	}
 
-	public function onCompletion(): void {
+	public function onCompletion() : void {
 		$data = $this->getResult();
 		if (!is_array($data)) {
 			return;

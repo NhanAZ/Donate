@@ -9,16 +9,20 @@ use dktapps\pmforms\CustomFormResponse;
 use dktapps\pmforms\element\Dropdown;
 use dktapps\pmforms\element\Input;
 use dktapps\pmforms\element\StepSlider;
-use Donate\Constant;
-use Donate\Donate;
+use Donate\manager\PaymentManager;
 use Donate\payment\CardPayment;
 use Donate\tasks\ChargingTask;
+use Donate\utils\DataTypeUtils;
 use Donate\utils\DebugLogger;
 use Donate\utils\MessageTranslator;
-use Donate\manager\PaymentManager;
 use pocketmine\player\Player;
 use pocketmine\Server;
-use Donate\utils\DataTypeUtils;
+use function date;
+use function is_array;
+use function strlen;
+use function substr;
+use function time;
+use function uniqid;
 
 class DonateForm {
 
@@ -30,10 +34,9 @@ class DonateForm {
 	}
 
 	/**
-	 * @param Player $player
 	 * @param mixed $data
 	 */
-	public function handleResponse(Player $player, $data): void {
+	public function handleResponse(Player $player, $data) : void {
 		if ($data === null) {
 			$this->plugin->debugLogger->log("Player " . $player->getName() . " closed the donate form", "form");
 			$player->sendMessage(MessageTranslator::formatErrorMessage("Bạn đã đóng form donate!"));
@@ -84,7 +87,7 @@ class DonateForm {
 		$this->plugin->debugLogger->log("Generated request ID: $requestId for player " . $player->getName(), "form");
 
 		// Lưu lại thông tin giao dịch đang xử lý
-		$payment = new \Donate\payment\CardPayment(
+		$payment = new CardPayment(
 			$requestId,
 			$player->getName(),
 			$telco,
@@ -129,7 +132,7 @@ class DonateForm {
 		}
 	}
 
-	public static function get(): CustomForm {
+	public static function get() : CustomForm {
 		return new CustomForm(
 			title: "Biểu Mẫu Nạp Thẻ",
 			elements: [
@@ -154,7 +157,7 @@ class DonateForm {
 					hintText: "Nhập mã thẻ tại đây:\nVí dụ: 312821445892982"
 				)
 			],
-			onSubmit: function (Player $submitter, CustomFormResponse $response): void {
+			onSubmit: function (Player $submitter, CustomFormResponse $response) : void {
 				if ($response->getString("serial") === "" || $response->getString("code") === "") {
 					$submitter->sendMessage(Constant::PREFIX . "Vui lòng không bỏ trống số sê-ri hoặc mã thẻ!");
 					return;

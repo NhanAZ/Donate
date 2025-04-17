@@ -44,7 +44,7 @@ final class ErrorCode {
 	/**
 	 * Get a human-readable error message for an error code
 	 */
-	public static function getMessage(int $code): string {
+	public static function getMessage(int $code) : string {
 		return match ($code) {
 			self::NONE => "Không có lỗi",
 			self::GENERIC_ERROR => "Lỗi không xác định",

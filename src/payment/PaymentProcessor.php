@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace Donate\payment;
 
 use Donate\api\ChargeResponse;
-use Donate\api\ChargeStatusResponse;
 use Donate\api\TrumTheAPI;
 use Donate\Constant;
 use Donate\Donate;
-use Donate\StatusCode;
 use pocketmine\player\Player;
 use pocketmine\utils\InternetException;
 use Ramsey\Uuid\Uuid;
+use function time;
 
 /**
  * Handles card payment processing logic
@@ -21,7 +20,6 @@ final class PaymentProcessor {
 	/** @var array<string, CardPayment> */
 	private array $pendingPayments = [];
 
-	/** @var Donate */
 	private Donate $plugin;
 
 	public function __construct(Donate $plugin) {
@@ -30,13 +28,13 @@ final class PaymentProcessor {
 
 	/**
 	 * Process a card payment
-	 * 
+	 *
 	 * @param Player $player The player making the payment
-	 * @param string $telco The telco/provider code
-	 * @param string $code The card code
+	 * @param string $telco  The telco/provider code
+	 * @param string $code   The card code
 	 * @param string $serial The card serial number
-	 * @param int $amount The card amount
-	 * 
+	 * @param int    $amount The card amount
+	 *
 	 * @return ChargeResponse The initial response from the charge API
 	 */
 	public function processCardPayment(
@@ -45,7 +43,7 @@ final class PaymentProcessor {
 		string $code,
 		string $serial,
 		int $amount
-	): ChargeResponse {
+	) : ChargeResponse {
 		// Generate a unique request ID
 		$requestId = Uuid::uuid4()->toString();
 
@@ -102,10 +100,10 @@ final class PaymentProcessor {
 
 	/**
 	 * Check the status of pending payments
-	 * 
+	 *
 	 * @return array<string, CardPayment> List of processed payments
 	 */
-	public function checkPendingPayments(): array {
+	public function checkPendingPayments() : array {
 		$processedPayments = [];
 
 		foreach ($this->pendingPayments as $requestId => $payment) {
@@ -144,13 +142,13 @@ final class PaymentProcessor {
 					$amount = $response->getAmount();
 
 					if ($amount === null) {
-						$amount = (float)$payment->getAmount();
+						$amount = (float) $payment->getAmount();
 					}
 
 					// Process successful payment
 					$this->plugin->successfulDonation(
 						$payment->getPlayerName(),
-						(int)$amount
+						(int) $amount
 					);
 
 					// Log successful payment
@@ -159,7 +157,7 @@ final class PaymentProcessor {
 					);
 
 					$payment->setStatus(PaymentStatus::SUCCESSFUL);
-					$payment->setProcessedAmount((int)$amount);
+					$payment->setProcessedAmount((int) $amount);
 				} else {
 					// Log failed payment
 					$this->plugin->getLogger()->info(
@@ -190,23 +188,23 @@ final class PaymentProcessor {
 	/**
 	 * Get a pending payment by request ID
 	 */
-	public function getPayment(string $requestId): ?CardPayment {
+	public function getPayment(string $requestId) : ?CardPayment {
 		return $this->pendingPayments[$requestId] ?? null;
 	}
 
 	/**
 	 * Get all pending payments
-	 * 
+	 *
 	 * @return array<string, CardPayment>
 	 */
-	public function getPendingPayments(): array {
+	public function getPendingPayments() : array {
 		return $this->pendingPayments;
 	}
 
 	/**
 	 * Check if there are any pending payments
 	 */
-	public function hasPendingPayments(): bool {
+	public function hasPendingPayments() : bool {
 		return !empty($this->pendingPayments);
 	}
 }

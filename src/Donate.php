@@ -6,7 +6,6 @@ namespace Donate;
 
 use Donate\manager\FormManager;
 use Donate\manager\PaymentManager;
-use Donate\SingletonTrait;
 use Donate\utils\DebugLogger;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
@@ -17,7 +16,43 @@ use pocketmine\utils\MainLogger;
 use pocketmine\utils\Terminal;
 use pocketmine\utils\Timezone;
 use Symfony\Component\Filesystem\Path;
-use pocketmine\utils\SingletonTrait as PMSingletonTrait;
+use function array_rand;
+use function array_slice;
+use function arsort;
+use function ceil;
+use function class_exists;
+use function count;
+use function date;
+use function fclose;
+use function fgets;
+use function file_exists;
+use function file_put_contents;
+use function filemtime;
+use function filesize;
+use function filter_var;
+use function floor;
+use function fopen;
+use function implode;
+use function in_array;
+use function is_array;
+use function is_numeric;
+use function is_writable;
+use function log;
+use function max;
+use function min;
+use function mkdir;
+use function mt_rand;
+use function number_format;
+use function round;
+use function strlen;
+use function strtoupper;
+use function substr;
+use function time;
+use function trim;
+use function uniqid;
+use function version_compare;
+use const FILTER_VALIDATE_INT;
+use const PHP_VERSION;
 
 class Donate extends PluginBase {
 	use SingletonTrait;
@@ -29,14 +64,14 @@ class Donate extends PluginBase {
 	private FormManager $formManager;
 	private PaymentManager $paymentManager;
 
-	protected function onLoad(): void {
+	protected function onLoad() : void {
 		self::setInstance($this);
 
 		// Prepare plugin directory
 		@mkdir($this->getDataFolder());
 	}
 
-	protected function onEnable(): void {
+	protected function onEnable() : void {
 		// Check PHP version
 		if (version_compare(PHP_VERSION, '8.3.0', '<')) {
 			$this->getLogger()->error("Plugin require PHP 8.3.0 or higher. Current version: " . PHP_VERSION);
@@ -53,7 +88,7 @@ class Donate extends PluginBase {
 
 		// Initialize configuration
 		$this->saveDefaultConfig();
-		
+
 		// Add default anti-spam settings if they don't exist
 		$config = $this->getConfig();
 		if (!$config->exists("anti_spam")) {
@@ -63,16 +98,16 @@ class Donate extends PluginBase {
 			]);
 			$config->save();
 		}
-		
+
 		// Apply anti-spam settings
 		$formCooldownValue = $config->getNested("anti_spam.form_cooldown", 5);
 		$apiCooldownValue = $config->getNested("anti_spam.api_cooldown", 2);
 		$formCooldown = filter_var($formCooldownValue, FILTER_VALIDATE_INT, ["options" => ["default" => 5]]);
 		$apiCooldown = filter_var($apiCooldownValue, FILTER_VALIDATE_INT, ["options" => ["default" => 2]]);
-		
+
 		// Configure API cooldown
-		\Donate\api\TrumTheAPI::setApiCooldown($apiCooldown);
-		
+		api\TrumTheAPI::setApiCooldown($apiCooldown);
+
 		$this->donateData = new Config($this->getDataFolder() . "donateData.yml", Config::YAML);
 
 		$this->logger = new MainLogger(
@@ -102,7 +137,7 @@ class Donate extends PluginBase {
 		$this->debugLogger->log("Plugin enabled successfully", "general");
 	}
 
-	protected function onDisable(): void {
+	protected function onDisable() : void {
 		// Save any pending data
 		if (isset($this->donateData)) {
 			$this->donateData->save();
@@ -113,7 +148,7 @@ class Donate extends PluginBase {
 		}
 	}
 
-	public function onCommand(CommandSender $sender, Command $command, string $label, array $args): bool {
+	public function onCommand(CommandSender $sender, Command $command, string $label, array $args) : bool {
 		$commandName = $command->getName();
 
 		// Ghi log việc sử dụng lệnh
@@ -145,14 +180,14 @@ class Donate extends PluginBase {
 
 						// Kiểm tra tính hợp lệ của telco
 						$validTelcos = ["VIETTEL", "MOBIFONE", "VINAPHONE", "VIETNAMOBILE", "ZING"];
-						if (!in_array($telco, $validTelcos)) {
+						if (!in_array($telco, $validTelcos, true)) {
 							$sender->sendMessage(Constant::PREFIX . "§cLoại thẻ không hợp lệ. Các loại thẻ hỗ trợ: " . implode(", ", $validTelcos));
 							return true;
 						}
 
 						// Kiểm tra mệnh giá
 						$validAmounts = [10000, 20000, 30000, 50000, 100000, 200000, 300000, 500000, 1000000];
-						if (!in_array($amount, $validAmounts)) {
+						if (!in_array($amount, $validAmounts, true)) {
 							$sender->sendMessage(Constant::PREFIX . "§cMệnh giá không hợp lệ. Các mệnh giá hỗ trợ: " . implode(", ", $validAmounts));
 							return true;
 						}
@@ -196,7 +231,7 @@ class Donate extends PluginBase {
 							}
 						} else {
 							// Nếu người chơi offline, sử dụng task
-							$this->getServer()->getAsyncPool()->submitTask(new \Donate\tasks\ChargingTask(
+							$this->getServer()->getAsyncPool()->submitTask(new tasks\ChargingTask(
 								$playerName,
 								$telco,
 								$code,
@@ -206,7 +241,7 @@ class Donate extends PluginBase {
 							));
 
 							// Dùng CardPayment để lưu trữ thông tin giao dịch
-							$payment = new \Donate\payment\CardPayment(
+							$payment = new payment\CardPayment(
 								$requestId,
 								$playerName,
 								$telco,
@@ -266,7 +301,7 @@ class Donate extends PluginBase {
 			case "donatedebug":
 				if (!$sender->hasPermission("donate.command.debug")) {
 					$this->debugLogger->log("DonateDebug command rejected - no permission: $senderName", "command");
-					$sender->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Bạn không có quyền sử dụng lệnh này!"));
+					$sender->sendMessage(utils\MessageTranslator::formatErrorMessage("Bạn không có quyền sử dụng lệnh này!"));
 					return true;
 				}
 
@@ -282,7 +317,7 @@ class Donate extends PluginBase {
 					case "status":
 						$requestId = $args[1] ?? "";
 						if (empty($requestId)) {
-							$sender->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Vui lòng cung cấp ID yêu cầu thanh toán!"));
+							$sender->sendMessage(utils\MessageTranslator::formatErrorMessage("Vui lòng cung cấp ID yêu cầu thanh toán!"));
 							return true;
 						}
 						$this->checkPaymentStatus($sender, $requestId);
@@ -334,7 +369,7 @@ class Donate extends PluginBase {
 						break;
 
 					default:
-						$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Các lệnh debug:"));
+						$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("Các lệnh debug:"));
 
 						// Quản lý cài đặt debug
 						$sender->sendMessage("§e§l● Quản lý chung:");
@@ -369,7 +404,7 @@ class Donate extends PluginBase {
 		}
 	}
 
-	private function showTopDonators(CommandSender $sender, int $page): void {
+	private function showTopDonators(CommandSender $sender, int $page) : void {
 		$donateData = $this->donateData->getAll();
 		if (empty($donateData)) {
 			$sender->sendMessage(Constant::PREFIX . "Hiện chưa có một ai nạp thẻ ủng hộ máy chủ...");
@@ -395,7 +430,7 @@ class Donate extends PluginBase {
 
 		foreach ($donateData as $playerName => $amount) {
 			// Calculate total donation amount for server
-			$amountValue = is_numeric($amount) ? (int)$amount : 0;
+			$amountValue = is_numeric($amount) ? (int) $amount : 0;
 			$serverTotalDonated += $amountValue;
 
 			// Find sender's rank
@@ -423,24 +458,24 @@ class Donate extends PluginBase {
 		$sender->sendMessage(Constant::PREFIX . "Tổng số tiền nạp thẻ từ người chơi của máy chủ là: {$formattedTotal}₫");
 	}
 
-	public function successfulDonation(string $playerName, int $amount): void {
-		$formattedAmount = \Donate\utils\MessageTranslator::formatAmount($amount);
+	public function successfulDonation(string $playerName, int $amount) : void {
+		$formattedAmount = utils\MessageTranslator::formatAmount($amount);
 
 		// Broadcast donation message
-		$this->getServer()->broadcastMessage(\Donate\utils\MessageTranslator::formatSuccessMessage("Người chơi $playerName đã nạp {$formattedAmount} để ủng hộ máy chủ!"));
+		$this->getServer()->broadcastMessage(utils\MessageTranslator::formatSuccessMessage("Người chơi $playerName đã nạp {$formattedAmount} để ủng hộ máy chủ!"));
 
 		// Update player statistics safely
 		$currentAmount = $this->donateData->getNested($playerName, 0);
-		$safeAmount = is_numeric($currentAmount) ? (int)$currentAmount : 0;
+		$safeAmount = is_numeric($currentAmount) ? (int) $currentAmount : 0;
 		$this->donateData->setNested($playerName, $safeAmount + $amount);
 		$this->donateData->save();
 
 		// Get bonus multiplier from config
 		$multiplierRaw = $this->getConfig()->get("bonus_multiplier", 1.0);
-		$multiplier = is_numeric($multiplierRaw) ? (float)$multiplierRaw : 1.0;
+		$multiplier = is_numeric($multiplierRaw) ? (float) $multiplierRaw : 1.0;
 
 		// Calculate bonus amount
-		$bonusAmount = (int)($amount * $multiplier);
+		$bonusAmount = (int) ($amount * $multiplier);
 
 		// Add any additional reward code here
 		// Example: EconomyAPI::getInstance()->addMoney($playerName, $bonusAmount);
@@ -448,42 +483,42 @@ class Donate extends PluginBase {
 		// Notify player if online
 		$player = $this->getServer()->getPlayerExact($playerName);
 		if ($player !== null) {
-			$player->sendMessage(\Donate\utils\MessageTranslator::formatSuccessMessage("Chân thành cảm ơn bạn đã ủng hộ máy chủ {$formattedAmount}!"));
-			$player->sendMessage(\Donate\utils\MessageTranslator::formatSuccessMessage("Bạn đã nhận được " . \Donate\utils\MessageTranslator::formatAmount($bonusAmount) . " xu"));
+			$player->sendMessage(utils\MessageTranslator::formatSuccessMessage("Chân thành cảm ơn bạn đã ủng hộ máy chủ {$formattedAmount}!"));
+			$player->sendMessage(utils\MessageTranslator::formatSuccessMessage("Bạn đã nhận được " . utils\MessageTranslator::formatAmount($bonusAmount) . " xu"));
 		}
 	}
 
-	public function getDonateData(): Config {
+	public function getDonateData() : Config {
 		return $this->donateData;
 	}
 
-	public function getFormManager(): FormManager {
+	public function getFormManager() : FormManager {
 		return $this->formManager;
 	}
 
-	public function getPaymentManager(): PaymentManager {
+	public function getPaymentManager() : PaymentManager {
 		return $this->paymentManager;
 	}
 
 	/**
 	 * Show pending payments to a command sender
 	 */
-	private function showPendingPayments(CommandSender $sender): void {
+	private function showPendingPayments(CommandSender $sender) : void {
 		$pendingPayments = $this->paymentManager->getPendingPayments();
 
 		if (empty($pendingPayments)) {
-			$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Không có giao dịch nào đang chờ xử lý."));
+			$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("Không có giao dịch nào đang chờ xử lý."));
 			return;
 		}
 
-		$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Các giao dịch đang xử lý: §f" . count($pendingPayments)));
+		$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("Các giao dịch đang xử lý: §f" . count($pendingPayments)));
 
 		foreach ($pendingPayments as $requestId => $payment) {
 			$elapsedTime = time() - $payment->getCreatedAt();
 			$elapsedFormatted = floor($elapsedTime / 60) . "m " . ($elapsedTime % 60) . "s";
 
 			$sender->sendMessage("§7- §f" . $payment->getPlayerName() .
-				"§7: §f" . \Donate\utils\MessageTranslator::formatAmount($payment->getAmount()) .
+				"§7: §f" . utils\MessageTranslator::formatAmount($payment->getAmount()) .
 				"§7, ID: §f" . substr($requestId, 0, 8) .
 				"§7, Thời gian: §f" . $elapsedFormatted);
 		}
@@ -492,7 +527,7 @@ class Donate extends PluginBase {
 	/**
 	 * Check the status of a specific payment
 	 */
-	private function checkPaymentStatus(CommandSender $sender, string $requestId): void {
+	private function checkPaymentStatus(CommandSender $sender, string $requestId) : void {
 		// Try to find the payment in pending payments first
 		$payment = $this->paymentManager->getPayment($requestId);
 
@@ -500,16 +535,16 @@ class Donate extends PluginBase {
 			$elapsedTime = time() - $payment->getCreatedAt();
 			$elapsedFormatted = floor($elapsedTime / 60) . "m " . ($elapsedTime % 60) . "s";
 
-			$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Thông tin thanh toán:"));
+			$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("Thông tin thanh toán:"));
 			$sender->sendMessage("§7- Người chơi: §f" . $payment->getPlayerName());
-			$sender->sendMessage("§7- Mệnh giá: §f" . \Donate\utils\MessageTranslator::formatAmount($payment->getAmount()));
+			$sender->sendMessage("§7- Mệnh giá: §f" . utils\MessageTranslator::formatAmount($payment->getAmount()));
 			$sender->sendMessage("§7- Loại thẻ: §f" . $payment->getTelco());
 			$sender->sendMessage("§7- Trạng thái: §f" . $payment->getStatus());
 			$sender->sendMessage("§7- Thời gian chờ: §f" . $elapsedFormatted);
 			$sender->sendMessage("§7- ID: §f" . $requestId);
 
 			// Trigger an immediate check of this payment
-			$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Tiến hành kiểm tra trạng thái..."));
+			$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("Tiến hành kiểm tra trạng thái..."));
 
 			try {
 				// Lấy thông tin thẻ để truyền vào hàm kiểm tra
@@ -519,33 +554,33 @@ class Donate extends PluginBase {
 					'serial' => $payment->getSerial(),
 					'amount' => $payment->getAmount()
 				];
-				
-				$response = \Donate\api\TrumTheAPI::checkCardStatus($requestId, $cardInfo);
+
+				$response = api\TrumTheAPI::checkCardStatus($requestId, $cardInfo);
 
 				if ($response === null) {
-					$sender->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Không thể kết nối đến dịch vụ thanh toán!"));
+					$sender->sendMessage(utils\MessageTranslator::formatErrorMessage("Không thể kết nối đến dịch vụ thanh toán!"));
 					return;
 				}
 
-				$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Kết quả kiểm tra:"));
+				$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("Kết quả kiểm tra:"));
 				$sender->sendMessage("§7- Mã trạng thái: §f" . $response->getStatus());
-				$sender->sendMessage("§7- Thông báo: §f" . \Donate\utils\MessageTranslator::translateErrorMessage($response->getMessage()));
+				$sender->sendMessage("§7- Thông báo: §f" . utils\MessageTranslator::translateErrorMessage($response->getMessage()));
 
 				if ($response->getAmount() !== null) {
-					$sender->sendMessage("§7- Số tiền: §f" . \Donate\utils\MessageTranslator::formatAmount($response->getAmount()));
+					$sender->sendMessage("§7- Số tiền: §f" . utils\MessageTranslator::formatAmount($response->getAmount()));
 				}
 			} catch (\Throwable $e) {
-				$sender->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Lỗi khi kiểm tra: " . $e->getMessage()));
+				$sender->sendMessage(utils\MessageTranslator::formatErrorMessage("Lỗi khi kiểm tra: " . $e->getMessage()));
 			}
 		} else {
-			$sender->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Không tìm thấy giao dịch với ID: " . $requestId));
+			$sender->sendMessage(utils\MessageTranslator::formatErrorMessage("Không tìm thấy giao dịch với ID: " . $requestId));
 		}
 	}
 
 	/**
 	 * Toggle debug category
 	 */
-	private function toggleDebugCategory(CommandSender $sender, string $category): void {
+	private function toggleDebugCategory(CommandSender $sender, string $category) : void {
 		$config = $this->getConfig();
 		$currentValue = (bool) $config->getNested("debug.categories." . $category, false);
 		$newValue = !$currentValue;
@@ -557,13 +592,13 @@ class Donate extends PluginBase {
 		$this->debugLogger->loadConfig();
 
 		$status = $newValue ? "§aBật" : "§cTắt";
-		$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Đã " . $status . " §edebug cho danh mục §f" . $category));
+		$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("Đã " . $status . " §edebug cho danh mục §f" . $category));
 	}
 
 	/**
 	 * Set debug enabled status
 	 */
-	private function setDebugEnabled(CommandSender $sender, bool $enabled): void {
+	private function setDebugEnabled(CommandSender $sender, bool $enabled) : void {
 		$config = $this->getConfig();
 		$config->setNested("debug.enabled", $enabled);
 		$config->save();
@@ -572,13 +607,13 @@ class Donate extends PluginBase {
 		$this->debugLogger->loadConfig();
 
 		$status = $enabled ? "§aBật" : "§cTắt";
-		$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Đã " . $status . " §edebug"));
+		$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("Đã " . $status . " §edebug"));
 	}
 
 	/**
 	 * Toggle notify admins setting
 	 */
-	private function toggleNotifyAdmins(CommandSender $sender): void {
+	private function toggleNotifyAdmins(CommandSender $sender) : void {
 		$config = $this->getConfig();
 		$currentValue = (bool) $config->getNested("debug.notify_admins", false);
 		$newValue = !$currentValue;
@@ -590,13 +625,13 @@ class Donate extends PluginBase {
 		$this->debugLogger->loadConfig();
 
 		$status = $newValue ? "§aBật" : "§cTắt";
-		$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Đã " . $status . " §ethông báo debug cho admin"));
+		$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("Đã " . $status . " §ethông báo debug cho admin"));
 	}
 
 	/**
 	 * List all debug categories and their status
 	 */
-	private function listDebugCategories(CommandSender $sender): void {
+	private function listDebugCategories(CommandSender $sender) : void {
 		$config = $this->getConfig();
 		$enabled = (bool) $config->getNested("debug.enabled", false);
 		$notifyAdmins = (bool) $config->getNested("debug.notify_admins", false);
@@ -605,7 +640,7 @@ class Donate extends PluginBase {
 		$enabledStatus = $enabled ? "§aBật" : "§cTắt";
 		$notifyStatus = $notifyAdmins ? "§aBật" : "§cTắt";
 
-		$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Trạng thái debug:"));
+		$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("Trạng thái debug:"));
 		$sender->sendMessage("§7- Trạng thái: " . $enabledStatus);
 		$sender->sendMessage("§7- Thông báo admin: " . $notifyStatus);
 		$sender->sendMessage("§7- Danh mục:");
@@ -623,11 +658,11 @@ class Donate extends PluginBase {
 	/**
 	 * Kiểm tra thông tin file log
 	 */
-	private function checkLogFile(CommandSender $sender): void {
+	private function checkLogFile(CommandSender $sender) : void {
 		$logPath = $this->getDataFolder() . "log.log";
 
 		if (!file_exists($logPath)) {
-			$sender->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("File log không tồn tại!"));
+			$sender->sendMessage(utils\MessageTranslator::formatErrorMessage("File log không tồn tại!"));
 			return;
 		}
 
@@ -635,7 +670,7 @@ class Donate extends PluginBase {
 		$isWritable = is_writable($logPath);
 		$lastModified = filemtime($logPath);
 
-		$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Thông tin file log:"));
+		$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("Thông tin file log:"));
 		$sender->sendMessage("§7- Đường dẫn: §f" . $logPath);
 		$sender->sendMessage("§7- Kích thước: §f" . $this->formatFileSize($fileSize !== false ? $fileSize : 0));
 		$sender->sendMessage("§7- Quyền ghi: §f" . ($isWritable ? "§aCó" : "§cKhông"));
@@ -668,35 +703,35 @@ class Donate extends PluginBase {
 	/**
 	 * Xóa nội dung file log
 	 */
-	private function clearLogFile(CommandSender $sender): void {
+	private function clearLogFile(CommandSender $sender) : void {
 		$logPath = $this->getDataFolder() . "log.log";
 
 		if (!file_exists($logPath)) {
-			$sender->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("File log không tồn tại!"));
+			$sender->sendMessage(utils\MessageTranslator::formatErrorMessage("File log không tồn tại!"));
 			return;
 		}
 
 		if (!is_writable($logPath)) {
-			$sender->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Không có quyền ghi file log!"));
+			$sender->sendMessage(utils\MessageTranslator::formatErrorMessage("Không có quyền ghi file log!"));
 			return;
 		}
 
 		// Xóa nội dung file bằng cách ghi đè chuỗi rỗng
 		if (file_put_contents($logPath, "") !== false) {
-			$sender->sendMessage(\Donate\utils\MessageTranslator::formatSuccessMessage("Đã xóa nội dung file log!"));
+			$sender->sendMessage(utils\MessageTranslator::formatSuccessMessage("Đã xóa nội dung file log!"));
 
 			// Ghi thông báo đầu tiên vào file log
 			$this->logger->info("Log file cleared by " . $sender->getName() . " at " . date("Y-m-d H:i:s"));
 			$this->debugLogger->log("Log file cleared by " . $sender->getName(), "general");
 		} else {
-			$sender->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Không thể xóa nội dung file log!"));
+			$sender->sendMessage(utils\MessageTranslator::formatErrorMessage("Không thể xóa nội dung file log!"));
 		}
 	}
 
 	/**
 	 * Kiểm tra khả năng ghi log
 	 */
-	private function testLogWriting(CommandSender $sender): void {
+	private function testLogWriting(CommandSender $sender) : void {
 		// Thử ghi log bằng cả hai phương thức
 		$testMessage = "Test log từ " . $sender->getName() . " lúc " . date("Y-m-d H:i:s");
 
@@ -721,14 +756,14 @@ class Donate extends PluginBase {
 			["time" => date("H:i:s"), "sender" => $sender->getName()]
 		);
 
-		$sender->sendMessage(\Donate\utils\MessageTranslator::formatSuccessMessage("Đã thử ghi log. Kiểm tra file log bằng lệnh /donatedebug loginfo và kiểm tra console"));
+		$sender->sendMessage(utils\MessageTranslator::formatSuccessMessage("Đã thử ghi log. Kiểm tra file log bằng lệnh /donatedebug loginfo và kiểm tra console"));
 	}
 
 	/**
 	 * Đọc số dòng đầu tiên của file
 	 * @return string[]
 	 */
-	private function readFirstLines(string $filePath, int $lineCount): array {
+	private function readFirstLines(string $filePath, int $lineCount) : array {
 		$lines = [];
 		$handle = fopen($filePath, "r");
 
@@ -748,7 +783,7 @@ class Donate extends PluginBase {
 	 * Đọc số dòng cuối cùng của file
 	 * @return string[]
 	 */
-	private function readLastLines(string $filePath, int $lineCount): array {
+	private function readLastLines(string $filePath, int $lineCount) : array {
 		$lines = [];
 		$fileSize = filesize($filePath);
 
@@ -777,7 +812,7 @@ class Donate extends PluginBase {
 	/**
 	 * Format kích thước file dễ đọc
 	 */
-	private function formatFileSize(int $bytes): string {
+	private function formatFileSize(int $bytes) : string {
 		$units = ['B', 'KB', 'MB', 'GB', 'TB'];
 
 		$bytes = max($bytes, 0);
@@ -791,7 +826,7 @@ class Donate extends PluginBase {
 	/**
 	 * Thêm dữ liệu mẫu để test
 	 */
-	private function addSampleData(CommandSender $sender): void {
+	private function addSampleData(CommandSender $sender) : void {
 		$this->debugLogger->log("Adding sample data requested by: " . ($sender instanceof Player ? $sender->getName() : "Console"), "sample");
 
 		// Thêm dữ liệu mẫu cho donateData.yml để test lệnh /topdonate
@@ -824,7 +859,7 @@ class Donate extends PluginBase {
 
 		// Hợp nhất dữ liệu
 		if (!empty($currentData)) {
-			$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Đã tìm thấy dữ liệu hiện có, đang hợp nhất..."));
+			$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("Đã tìm thấy dữ liệu hiện có, đang hợp nhất..."));
 
 			// Chỉ thêm vào người chơi mới
 			$newCount = 0;
@@ -840,14 +875,14 @@ class Donate extends PluginBase {
 			// Lưu lại dữ liệu hợp nhất - ép kiểu các khóa thành chuỗi
 			$stringKeysData = [];
 			foreach ($currentData as $key => $value) {
-				$stringKeysData[(string)$key] = $value;
+				$stringKeysData[(string) $key] = $value;
 			}
 			$this->donateData->setAll($stringKeysData);
 		} else {
 			// Nếu không có dữ liệu, thêm mới hoàn toàn - ép kiểu các khóa thành chuỗi
 			$stringKeysData = [];
 			foreach ($sampleData as $key => $value) {
-				$stringKeysData[(string)$key] = $value;
+				$stringKeysData[(string) $key] = $value;
 			}
 			$this->donateData->setAll($stringKeysData);
 			$this->debugLogger->log("Added all sample data (20 entries) to empty data file", "sample");
@@ -864,7 +899,7 @@ class Donate extends PluginBase {
 		$serial = "987654321098";
 		$amount = 100000;
 
-		$payment = new \Donate\payment\CardPayment(
+		$payment = new payment\CardPayment(
 			$requestId,
 			$sender instanceof Player ? $sender->getName() : "Console",
 			$telco,
@@ -878,16 +913,16 @@ class Donate extends PluginBase {
 		$this->paymentManager->addSamplePayment($requestId, $payment);
 		$this->debugLogger->log("Added sample payment with ID: $requestId", "sample");
 
-		$sender->sendMessage(\Donate\utils\MessageTranslator::formatSuccessMessage("Đã thêm dữ liệu mẫu thành công!"));
-		$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("- Đã thêm 20 người chơi với số tiền donate mẫu"));
-		$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("- Đã thêm 1 giao dịch đang chờ xử lý với ID: " . substr($requestId, 0, 10) . "..."));
-		$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Bạn có thể test lệnh /topdonate và /donatedebug pending ngay bây giờ"));
+		$sender->sendMessage(utils\MessageTranslator::formatSuccessMessage("Đã thêm dữ liệu mẫu thành công!"));
+		$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("- Đã thêm 20 người chơi với số tiền donate mẫu"));
+		$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("- Đã thêm 1 giao dịch đang chờ xử lý với ID: " . substr($requestId, 0, 10) . "..."));
+		$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("Bạn có thể test lệnh /topdonate và /donatedebug pending ngay bây giờ"));
 	}
 
 	/**
 	 * Thêm giao dịch đang chờ xử lý mẫu
 	 */
-	private function addSamplePendingPayments(CommandSender $sender, int $count): void {
+	private function addSamplePendingPayments(CommandSender $sender, int $count) : void {
 		$this->debugLogger->log("Adding $count sample pending payments requested by: " . ($sender instanceof Player ? $sender->getName() : "Console"), "sample");
 
 		$telcos = ["VIETTEL", "MOBIFONE", "VINAPHONE", "VIETNAMOBILE", "ZING"];
@@ -926,7 +961,7 @@ class Donate extends PluginBase {
 			// Tạo thời gian ngẫu nhiên trong 10 phút qua
 			$createdTime = time() - mt_rand(0, 600);
 
-			$payment = new \Donate\payment\CardPayment(
+			$payment = new payment\CardPayment(
 				$requestId,
 				$playerName,
 				$telco,
@@ -947,17 +982,17 @@ class Donate extends PluginBase {
 			];
 		}
 
-		$sender->sendMessage(\Donate\utils\MessageTranslator::formatSuccessMessage("Đã thêm $count giao dịch đang chờ xử lý mẫu!"));
+		$sender->sendMessage(utils\MessageTranslator::formatSuccessMessage("Đã thêm $count giao dịch đang chờ xử lý mẫu!"));
 
 		// Hiển thị danh sách các giao dịch vừa thêm
 		if ($count <= 10) { // Chỉ hiển thị chi tiết nếu ít hơn 10 giao dịch
-			$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Danh sách giao dịch đã thêm:"));
+			$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("Danh sách giao dịch đã thêm:"));
 			foreach ($addedPayments as $p) {
 				$formattedAmount = number_format($p["amount"], 0, ",", ".");
 				$sender->sendMessage("§7- §f{$p["player"]} §7| §f{$formattedAmount}đ §7| §f{$p["telco"]} §7| §f{$p["time"]} §7| §fID: {$p["id"]}");
 			}
 		}
 
-		$sender->sendMessage(\Donate\utils\MessageTranslator::formatInfoMessage("Dùng lệnh /donatedebug pending để xem danh sách"));
+		$sender->sendMessage(utils\MessageTranslator::formatInfoMessage("Dùng lệnh /donatedebug pending để xem danh sách"));
 	}
 }

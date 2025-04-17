@@ -4,16 +4,29 @@ declare(strict_types=1);
 
 namespace Donate\utils;
 
-use Donate\Constant;
 use Donate\Donate;
 use pocketmine\player\Player;
 use pocketmine\utils\TextFormat;
+use function date;
+use function dirname;
+use function file_put_contents;
+use function is_array;
+use function is_scalar;
+use function is_string;
+use function json_encode;
+use function mkdir;
+use function rtrim;
+use function str_ends_with;
+use function strtoupper;
+use function substr;
+use const FILE_APPEND;
+use const LOCK_EX;
+use const PHP_EOL;
 
 /**
  * Utility class for handling debug logging
  */
 class DebugLogger {
-	/** @var self|null */
 	private static ?self $instance = null;
 
 	/** @var bool Whether debug logging is enabled */
@@ -36,14 +49,14 @@ class DebugLogger {
 	/**
 	 * Get the instance of the debug logger
 	 */
-	public static function getInstance(): ?self {
+	public static function getInstance() : ?self {
 		return self::$instance;
 	}
 
 	/**
 	 * Load debug configuration from plugin config
 	 */
-	public function loadConfig(): void {
+	public function loadConfig() : void {
 		$config = $this->plugin->getConfig();
 		$this->enabled = (bool) $config->getNested("debug.enabled", false);
 		$this->notifyAdmins = (bool) $config->getNested("debug.notify_admins", false);
@@ -52,7 +65,7 @@ class DebugLogger {
 		$categories = $config->getNested("debug.categories", []);
 		if (is_array($categories)) {
 			foreach ($categories as $category => $enabled) {
-				$this->enabledCategories[(string)$category] = (bool) $enabled;
+				$this->enabledCategories[(string) $category] = (bool) $enabled;
 			}
 		}
 	}
@@ -60,7 +73,7 @@ class DebugLogger {
 	/**
 	 * Check if debugging is enabled for a specific category
 	 */
-	public function isEnabled(string $category = "general"): bool {
+	public function isEnabled(string $category = "general") : bool {
 		if (!$this->enabled) {
 			return false;
 		}
@@ -76,7 +89,7 @@ class DebugLogger {
 	/**
 	 * Log a debug message
 	 */
-	public function log(string $message, string $category = "general", bool $logToConsole = true, bool $notifyAdmins = true): void {
+	public function log(string $message, string $category = "general", bool $logToConsole = true, bool $notifyAdmins = true) : void {
 		if (!$this->isEnabled($category)) {
 			return;
 		}
@@ -114,7 +127,7 @@ class DebugLogger {
 	/**
 	 * Ghi trực tiếp vào file log để đảm bảo nội dung được lưu
 	 */
-	private function writeToLogFile(string $logFile, string $message): void {
+	private function writeToLogFile(string $logFile, string $message) : void {
 		// Thêm dòng mới vào cuối nếu chưa có
 		if (!str_ends_with($message, PHP_EOL)) {
 			$message .= PHP_EOL;
@@ -131,7 +144,7 @@ class DebugLogger {
 	}
 
 	/**
-	 * Log a payment debug message 
+	 * Log a payment debug message
 	 * @param array<string, mixed> $details Additional payment details
 	 */
 	public function logPayment(
@@ -139,14 +152,14 @@ class DebugLogger {
 		string $player,
 		string $requestId,
 		array $details = []
-	): void {
+	) : void {
 		if (!$this->isEnabled("payment")) {
 			return;
 		}
 
 		$detailsStr = "";
 		foreach ($details as $key => $value) {
-			$detailsStr .= $key . ": " . (is_scalar($value) ? (string)$value : json_encode($value)) . ", ";
+			$detailsStr .= $key . ": " . (is_scalar($value) ? (string) $value : json_encode($value)) . ", ";
 		}
 		$detailsStr = rtrim($detailsStr, ", ");
 
@@ -158,15 +171,15 @@ class DebugLogger {
 
 	/**
 	 * Log an API-related debug message
-	 * @param string $action The API action performed
-	 * @param array<string, mixed> $request Request parameters
+	 * @param string               $action   The API action performed
+	 * @param array<string, mixed> $request  Request parameters
 	 * @param array<string, mixed> $response Response data
 	 */
 	public function logApi(
 		string $action,
 		array $request = [],
 		array $response = []
-	): void {
+	) : void {
 		if (!$this->isEnabled("api")) {
 			return;
 		}
@@ -204,7 +217,7 @@ class DebugLogger {
 	/**
 	 * Notify online players with admin permission
 	 */
-	private function notifyAdmins(string $message): void {
+	private function notifyAdmins(string $message) : void {
 		foreach ($this->plugin->getServer()->getOnlinePlayers() as $player) {
 			if ($player->hasPermission("donate.admin")) {
 				$player->sendMessage($message);
@@ -215,7 +228,7 @@ class DebugLogger {
 	/**
 	 * Send a debug message to a specific player
 	 */
-	public function sendToPlayer(Player $player, string $message, string $category = "general"): void {
+	public function sendToPlayer(Player $player, string $message, string $category = "general") : void {
 		if (!$this->isEnabled($category)) {
 			return;
 		}

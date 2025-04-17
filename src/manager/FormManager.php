@@ -6,54 +6,68 @@ namespace Donate\manager;
 
 use Donate\Constant;
 use Donate\Donate;
+use Donate\utils\DataTypeUtils;
 use pocketmine\form\Form;
 use pocketmine\player\Player;
-use pocketmine\utils\Utils;
-use Ramsey\Uuid\Uuid;
 use pocketmine\scheduler\ClosureTask;
-use Donate\utils\DataTypeUtils;
+use Ramsey\Uuid\Uuid;
+use function arsort;
+use function ceil;
+use function count;
+use function filter_var;
+use function implode;
+use function is_array;
+use function is_numeric;
+use function is_string;
+use function max;
+use function min;
+use function number_format;
+use function strpos;
+use function substr;
+use function time;
+use const FILTER_VALIDATE_INT;
 
 class FormManager {
 	private Donate $plugin;
-	
+
 	// Add player cooldown tracking
 	/** @var array<string, int> Last form submission time by player */
 	public array $lastFormSubmission = [];
-	
+
 	// Form cooldown setting
 	/** @var int Cooldown between form submissions in seconds */
 	private int $formCooldown = 5; // Default: 5 seconds cooldown
-	
+
 	/**
 	 * Get the form submission cooldown time in seconds
 	 */
-	public function getFormCooldown(): int {
+	public function getFormCooldown() : int {
 		return $this->formCooldown;
 	}
 
 	public function __construct(Donate $plugin) {
 		$this->plugin = $plugin;
-		
+
 		// Load form cooldown from config
 		$config = $plugin->getConfig();
 		$configValue = $config->getNested("anti_spam.form_cooldown", 5);
 		$this->formCooldown = max(1, filter_var($configValue, FILTER_VALIDATE_INT, ["options" => ["default" => 5]]));
-		
+
 		$plugin->debugLogger->log("Form cooldown set to {$this->formCooldown} seconds", "form");
 	}
 
 	/**
 	 * Send the donate form to a player
 	 */
-	public function sendDonateForm(Player $player): void {
+	public function sendDonateForm(Player $player) : void {
 		// Check for cooldown to prevent spam
 		$playerName = $player->getName();
 		$currentTime = time();
-		
+
 		if (isset($this->lastFormSubmission[$playerName])) {
 			$lastTime = $this->lastFormSubmission[$playerName];
 			$timeDiff = $currentTime - $lastTime;
-			
+
 			if ($timeDiff < $this->formCooldown) {
 				$remainingTime = $this->formCooldown - $timeDiff;
 				$player->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Vui lòng đợi {$remainingTime} giây trước khi mở form lại."));
@@ -61,10 +75,10 @@ class FormManager {
 				return;
 			}
 		}
-		
+
 		// Update the last form time
 		$this->lastFormSubmission[$playerName] = $currentTime;
-		
+
 		$this->plugin->logger->info("[Donate/Form] Sending donate form to player: " . $player->getName());
 		$form = $this->createDonateForm();
 		$player->sendForm($form);
@@ -73,15 +87,15 @@ class FormManager {
 	/**
 	 * Send the top donate form to a player
 	 */
-	public function sendTopDonateForm(Player $player, int $page = 1): void {
+	public function sendTopDonateForm(Player $player, int $page = 1) : void {
 		// Check for cooldown to prevent spam
 		$playerName = $player->getName();
 		$currentTime = time();
-		
+
 		if (isset($this->lastFormSubmission[$playerName])) {
 			$lastTime = $this->lastFormSubmission[$playerName];
 			$timeDiff = $currentTime - $lastTime;
-			
+
 			if ($timeDiff < $this->formCooldown) {
 				$remainingTime = $this->formCooldown - $timeDiff;
 				$player->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Vui lòng đợi {$remainingTime} giây trước khi mở form lại."));
@@ -89,10 +103,10 @@ class FormManager {
 				return;
 			}
 		}
-		
+
 		// Update the last form time
 		$this->lastFormSubmission[$playerName] = $currentTime;
-		
+
 		$this->plugin->logger->info("[Donate/Form] Sending top donate form to player: " . $player->getName() . ", page: " . $page);
 		$this->plugin->debugLogger->log("Sending top donate form to player: " . $player->getName() . ", page: " . $page, "form");
 		$form = $this->createTopDonateForm($page);
@@ -102,7 +116,7 @@ class FormManager {
 	/**
 	 * Create a form for card donations
 	 */
-	private function createDonateForm(): Form {
+	private function createDonateForm() : Form {
 		return new class($this->plugin) implements Form {
 			private Donate $plugin;
 
@@ -111,7 +125,7 @@ class FormManager {
 			}
 
 			/** @return array<string, mixed> */
-			public function jsonSerialize(): array {
+			public function jsonSerialize() : array {
 				return [
 					'type' => 'custom_form',
 					'title' => 'Nạp Thẻ',
@@ -140,23 +154,23 @@ class FormManager {
 				];
 			}
 
-			public function handleResponse(Player $player, mixed $data): void {
+			public function handleResponse(Player $player, mixed $data) : void {
 				// Check if form was closed
 				if ($data === null) {
 					$this->plugin->logger->info("[Donate/Form] Player " . $player->getName() . " closed the donate form");
 					return;
 				}
-				
+
 				// Apply submission cooldown to prevent API spam
 				$playerName = $player->getName();
 				$currentTime = time();
 				$formManager = $this->plugin->getFormManager();
-				
+
 				// Check if the player is attempting to submit forms too quickly
 				if (isset($formManager->lastFormSubmission[$playerName])) {
 					$lastTime = $formManager->lastFormSubmission[$playerName];
 					$timeDiff = $currentTime - $lastTime;
-					
+
 					if ($timeDiff < $formManager->getFormCooldown()) {
 						$remainingTime = $formManager->getFormCooldown() - $timeDiff;
 						$player->sendMessage(\Donate\utils\MessageTranslator::formatErrorMessage("Gửi quá nhanh! Vui lòng đợi {$remainingTime} giây trước khi gửi lại."));
@@ -164,7 +178,7 @@ class FormManager {
 						return;
 					}
 				}
-				
+
 				// Update the last submission time
 				$formManager->lastFormSubmission[$playerName] = $currentTime;
 
@@ -289,7 +303,7 @@ class FormManager {
 	/**
 	 * Create a top donate form
 	 */
-	private function createTopDonateForm(int $page = 1): Form {
+	private function createTopDonateForm(int $page = 1) : Form {
 		return new class($this->plugin, $page) implements Form {
 			private Donate $plugin;
 			private int $page;
@@ -300,7 +314,7 @@ class FormManager {
 			}
 
 			/** @return array<string, mixed> */
-			public function jsonSerialize(): array {
+			public function jsonSerialize() : array {
 				$donateData = $this->plugin->getDonateData()->getAll();
 
 				// Log debug for donation data
@@ -338,7 +352,7 @@ class FormManager {
 
 				foreach ($donateData as $playerName => $amount) {
 					// Tính tổng số tiền donate
-					$amountValue = is_numeric($amount) ? (int)$amount : 0;
+					$amountValue = is_numeric($amount) ? (int) $amount : 0;
 					$serverTotalDonated += $amountValue;
 
 					// Hiển thị các mục cho trang hiện tại
@@ -387,14 +401,14 @@ class FormManager {
 				];
 			}
 
-			public function handleResponse(Player $player, mixed $data): void {
+			public function handleResponse(Player $player, mixed $data) : void {
 				if ($data === null) {
 					$this->plugin->debugLogger->log("TopDonate form: Player " . $player->getName() . " closed the form", "form");
 					return; // Người chơi đóng form
 				}
 
 				// Convert $data to string and store in variable first
-				$dataStr = \Donate\utils\DataTypeUtils::toString($data);
+				$dataStr = DataTypeUtils::toString($data);
 				$this->plugin->debugLogger->log("TopDonate form: Player " . $player->getName() . " clicked button index: " . $dataStr, "form");
 
 				$donateData = $this->plugin->getDonateData()->getAll();
@@ -421,8 +435,8 @@ class FormManager {
 
 							// Mở lại form sau 1.5 giây
 							$this->plugin->getScheduler()->scheduleDelayedTask(
-								new \pocketmine\scheduler\ClosureTask(
-									function () use ($player): void {
+								new ClosureTask(
+									function () use ($player) : void {
 										if ($player->isOnline()) {
 											$this->plugin->debugLogger->log("TopDonate form: Reopening first page after delay", "form");
 											$this->plugin->getFormManager()->sendTopDonateForm($player, 1);
@@ -452,8 +466,8 @@ class FormManager {
 
 							// Mở lại form sau 1.5 giây
 							$this->plugin->getScheduler()->scheduleDelayedTask(
-								new \pocketmine\scheduler\ClosureTask(
-									function () use ($player, $maxPage): void {
+								new ClosureTask(
+									function () use ($player, $maxPage) : void {
 										if ($player->isOnline()) {
 											$this->plugin->debugLogger->log("TopDonate form: Reopening last page after delay", "form");
 											$this->plugin->getFormManager()->sendTopDonateForm($player, $maxPage);
@@ -472,7 +486,7 @@ class FormManager {
 	/**
 	 * Show a confirmation form to the player
 	 */
-	public function sendConfirmationForm(Player $player, string $message, callable $onConfirm): void {
+	public function sendConfirmationForm(Player $player, string $message, callable $onConfirm) : void {
 		$form = $this->createConfirmationForm($message, $onConfirm);
 		$player->sendForm($form);
 	}
@@ -480,7 +494,7 @@ class FormManager {
 	/**
 	 * Create a simple confirmation form
 	 */
-	private function createConfirmationForm(string $message, callable $onConfirm): Form {
+	private function createConfirmationForm(string $message, callable $onConfirm) : Form {
 		return new class($message, $onConfirm) implements Form {
 			private string $message;
 			/** @var callable */
@@ -492,7 +506,7 @@ class FormManager {
 			}
 
 			/** @return array<string, mixed> */
-			public function jsonSerialize(): array {
+			public function jsonSerialize() : array {
 				return [
 					'type' => 'form',
 					'title' => 'Xác nhận',
@@ -504,7 +518,7 @@ class FormManager {
 				];
 			}
 
-			public function handleResponse(Player $player, mixed $data): void {
+			public function handleResponse(Player $player, mixed $data) : void {
 				// Check if form was closed or canceled
 				if ($data === null || $data === 1) {
 					return;
