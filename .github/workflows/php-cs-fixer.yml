@@ -24,7 +24,7 @@ jobs:
         tools: composer:v2
 
     - name: Install dependencies
-      run: composer install --ignore-platform-req=ext-chunkutils2 --ignore-platform-req=ext-pmmpthread --ignore-platform-req=ext-crypto
+      run: composer install --ignore-platform-reqs
 
     - name: Run CS Fixer
       run: composer cs-fix
