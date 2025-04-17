@@ -1,5 +1,3 @@
-## Hướng dẫn kết nối API.
-
 ## QUAN TRỌNG: Tuyến bố từ chối trách nhiệm
 
 Đây là một dự án cá nhân không được phát triển tích cực. Plugin này được cung cấp "nguyên trạng" mà không có bất kỳ bảo đảm nào, dù rõ ràng hay ngụ ý. Tôi không chịu trách nhiệm và không tham gia vào việc phát triển, bảo trì hoặc hỗ trợ plugin này.
@@ -19,9 +17,9 @@ Plugin này được phát hành dưới giấy phép [MIT License](LICENSE). B�
 
 Sử dụng plugin này đồng nghĩa với việc bạn chấp nhận các điều khoản trên.
 
-## Hướng dẫn kết nối API
+### Hướng dẫn kết nối API
 
-### 1. Đăng ký và thiết lập API TrumThe.vn
+#### Bước 1. Đăng ký và thiết lập API TrumThe.vn
 
 1. Truy cập vào [TrumThe.vn](https://trumthe.vn/merchant) và đăng nhập hoặc đăng ký tài khoản
 2. Vào phần "KẾT NỐI API" trong menu chính
@@ -40,7 +38,7 @@ Sử dụng plugin này đồng nghĩa với việc bạn chấp nhận các đi
 
 5. **Quan trọng**: Liên hệ với admin TrumThe để kích hoạt API từ trạng thái "Đang tắt" sang "Hoạt động"
 
-### 2. Cấu hình plugin
+#### Bước 2. Cấu hình plugin
 
 1. Mở file `resources/config.yml`
 2. Điền thông tin đã đăng ký:
@@ -50,7 +48,7 @@ partner_id: "PARTNER_ID_CỦA_BẠN"  # ID đối tác
 partner_key: "PARTNER_KEY_CỦA_BẠN" # Khóa API đối tác
 ```
 
-### 3. Thiết lập Callback URL (Tham khảo)
+#### Bước 3. Thiết lập Callback URL (Tham khảo - Có thể bỏ qua)
 
 Nếu bạn muốn thiết lập một callback URL thực sự hoạt động (tùy chọn), bạn cần:
 - Có domain trỏ đến IP máy chủ
@@ -66,7 +64,7 @@ location /trumthe/callback {
 }
 ```
 
-### 4. Hỗ trợ kỹ thuật
+#### Bước 4. Hỗ trợ kỹ thuật
 
 Nếu cần hỗ trợ đấu tích hợp API gạch thẻ, vui lòng liên hệ:
 - **SĐT/Zalo**: 081.7577777 - 081.7377777

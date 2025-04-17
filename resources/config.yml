@@ -1,6 +1,10 @@
 ---
 # Donate Plugin Configuration
 # Plugin nạp thẻ cho PocketMine-MP
+# ---- HƯỚNG DẪN ----
+# Vui lòng đọc file README.md để được hướng dẫn đầy đủ về cách thiết lập API TrumThe
+# Liên hệ hỗ trợ đấu tích hợp API: SĐT/Zalo: 081.7577777 - 081.7377777 (hỗ trợ 24/7)
+# Truy cập trumthe.vn/merchant đăng ký API để có ID đối tác và Khóa API
 
 # Partner credentials (từ trumthe.vn)
 partner_id: ""  # ID đối tác
