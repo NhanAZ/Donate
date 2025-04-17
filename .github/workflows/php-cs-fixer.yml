@@ -24,10 +24,10 @@ jobs:
         tools: composer:v2
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
+      run: composer install --ignore-platform-req=ext-chunkutils2 --ignore-platform-req=ext-pmmpthread
 
-    - name: Run PHP CS Fixer
-      run: vendor/bin/php-cs-fixer fix --config=php-cs-fixer.php --allow-risky=yes
+    - name: Run CS Fixer
+      run: composer cs-fix
 
     - name: Commit changes
       uses: stefanzweifel/git-auto-commit-action@v4
